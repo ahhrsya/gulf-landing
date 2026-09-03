@@ -551,8 +551,14 @@
        which some browsers fail to clip to the parent figure's border-radius —
        the classic "square corner poking through a rounded container" bug.
        Setting border-radius: inherit directly on the img fixes it regardless. */
-    .approach-image img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; filter: saturate(0.76); clip-path: inset(0 0 0 0); transition: clip-path 550ms linear; }
-    .approach-image.is-changing img { clip-path: inset(100% 0 0 0); transition: none; }
+    /* ponytail: two stacked layers. The outgoing image stays put underneath
+       and the incoming one wipes up over it, so the figure's grey background
+       is never exposed mid-swap (clipping the single image away was what
+       flashed grey). */
+    .approach-image { position: relative; }
+    .approach-image img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; filter: saturate(0.76); }
+    .approach-image-next { clip-path: inset(100% 0 0 0); }
+    .approach-image.is-wiping .approach-image-next { clip-path: inset(0 0 0 0); transition: clip-path 550ms linear; }
     .approach-support { grid-column: 1; grid-row: 2; align-self: start; width: min(100%, 420px); aspect-ratio: 1.35 / 1; border-radius: 8px; }
     .approach-main { grid-column: 2; grid-row: 2; align-self: start; width: 100%; aspect-ratio: 1.45 / 1; border-radius: 8px; }
 
@@ -952,9 +958,11 @@
 
         <figure class="approach-image approach-support">
           <img data-approach-support src="../assets/creative-park-hero.avif" alt="Architectural view of Dubai Creative Park">
+          <img class="approach-image-next" data-approach-support-next alt="" aria-hidden="true">
         </figure>
         <figure class="approach-image approach-main">
           <img data-approach-main src="../assets/fitness-day.png" alt="Dubai Creative Park fitness space">
+          <img class="approach-image-next" data-approach-main-next alt="" aria-hidden="true">
         </figure>
       </div>
     </section>
@@ -1280,6 +1288,41 @@
     const approachDescription = document.querySelector('[data-approach-description]');
     const approachSupport = document.querySelector('[data-approach-support]');
     const approachMain = document.querySelector('[data-approach-main]');
+    const approachSupportNext = document.querySelector('[data-approach-support-next]');
+    const approachMainNext = document.querySelector('[data-approach-main-next]');
+
+    // ponytail: load the incoming image before starting the wipe, otherwise
+    // the layer wipes in empty. Old image stays underneath the whole time,
+    // then gets promoted once the wipe lands.
+    const WIPE_MS = 550;
+    const wipeImage = (base, next, src, alt) => {
+      if (!base || !next) return;
+      const figure = base.parentElement;
+      if (base.getAttribute('src') === src) return;
+
+      if (reducedMotion) {
+        base.src = src;
+        base.alt = alt;
+        return;
+      }
+
+      next.src = src;
+      const start = () => {
+        figure.classList.remove('is-wiping');
+        void figure.offsetWidth; // commit the reset before animating
+        figure.classList.add('is-wiping');
+        window.clearTimeout(figure._wipeTimer);
+        figure._wipeTimer = window.setTimeout(() => {
+          base.src = src;
+          base.alt = alt;
+          figure.classList.remove('is-wiping');
+        }, WIPE_MS + 40);
+      };
+
+      if (next.decode) next.decode().then(start).catch(start);
+      else if (next.complete) start();
+      else next.onload = start;
+    };
     const approachItems = [
       {
         title: 'Conviction',
@@ -1331,20 +1374,15 @@
       });
 
       approachCopy.classList.add('is-changing');
-      approachSupport.parentElement.classList.add('is-changing');
-      approachMain.parentElement.classList.add('is-changing');
       window.clearTimeout(approachSwapTimer);
       approachSwapTimer = window.setTimeout(() => {
         approachIcon.innerHTML = item.icon;
         approachDescription.textContent = item.description;
-        approachSupport.src = item.supportImage;
-        approachSupport.alt = item.supportAlt;
-        approachMain.src = item.mainImage;
-        approachMain.alt = item.mainAlt;
         approachCopy.classList.remove('is-changing');
-        approachSupport.parentElement.classList.remove('is-changing');
-        approachMain.parentElement.classList.remove('is-changing');
       }, reducedMotion ? 0 : 180);
+
+      wipeImage(approachSupport, approachSupportNext, item.supportImage, item.supportAlt);
+      wipeImage(approachMain, approachMainNext, item.mainImage, item.mainAlt);
     };
 
     approachRows.forEach((row) => {
