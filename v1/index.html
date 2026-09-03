@@ -541,6 +541,8 @@
     .map-card p { margin: 0; color: #777774; font-size: 13px; line-height: 1.25; }
 
     .cta {
+      position: relative;
+      overflow: hidden;
       min-height: 72svh;
       padding: 80px 40px;
       background: #0b0b0b;
@@ -551,11 +553,28 @@
       align-items: end;
     }
 
+    .cta > div:not(.cta-trail) { position: relative; z-index: 1; }
     .cta .eyebrow { color: #8b8b88; }
     .cta h2 { max-width: 10ch; margin: 0; font-size: clamp(58px, 8vw, 126px); font-weight: 400; letter-spacing: -0.09em; line-height: 0.8; }
     .cta-copy { max-width: 30ch; margin: 0 0 4px; color: #c6c6c2; font-size: clamp(20px, 2vw, 30px); letter-spacing: -0.045em; line-height: 1; }
     .cta-link { display: inline-flex; align-items: center; gap: 16px; margin-top: 34px; padding-bottom: 8px; border-bottom: 1px solid #fff; color: #fff; font-size: 15px; text-decoration: none; }
     .cta-link::after { content: "↗"; font-size: 20px; }
+    .cta-meta { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 22px 0 0; color: #777774; font-size: 13px; letter-spacing: -0.01em; }
+    .cta-meta a { color: #c6c6c2; text-decoration: none; }
+    .cta-meta a:hover { color: #fff; }
+
+    .cta-trail { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+    .cta-trail img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: clamp(150px, 13vw, 240px);
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      opacity: 0;
+      filter: saturate(0.78) brightness(1.12);
+      will-change: transform, opacity;
+    }
 
     .site-footer {
       min-height: 74svh;
@@ -850,18 +869,24 @@
     </section>
 
     <section class="section cta" id="cta" aria-labelledby="cta-title">
+      <div class="cta-trail" aria-hidden="true"></div>
       <div>
         <p class="eyebrow">Get in touch</p>
         <h2 id="cta-title">Build what comes next.</h2>
       </div>
       <div>
         <p class="cta-copy">We partner with institutions, family offices and development partners building category-defining destinations in Dubai.</p>
-        <a class="cta-link" href="#contact">Start a conversation</a>
+        <a class="cta-link" href="mailto:info@gulfalts.com?subject=Dubai%20Creative%20Park%20enquiry">Start a conversation</a>
+        <p class="cta-meta">
+          <a href="mailto:info@gulfalts.com">info@gulfalts.com</a>
+          <span aria-hidden="true">·</span>
+          <span>Dubai, UAE</span>
+        </p>
       </div>
     </section>
 
     <footer class="section site-footer" id="contact">
-      <p class="eyebrow footer-eyebrow">Get in touch</p>
+      <p class="eyebrow footer-eyebrow">Gulf Alternatives</p>
       <div class="footer-top">
         <div>
           <p class="footer-label">Navigation</p>
@@ -1134,6 +1159,55 @@
       window.addEventListener('resize', requestScrollRender, { passive: true });
       requestScrollRender();
     }
+  </script>
+
+  <!-- ===== cta cursor image trail ===== -->
+  <script>
+    (() => {
+      const trail = document.querySelector('.cta-trail');
+      const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+      const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!trail || !fine || still) return;
+
+      const sources = ['../assets/creative-park-hero.avif', '../assets/fitness-day.png', '../assets/fitness-night.jpg'];
+      const pool = sources.concat(sources).map((src) => {
+        const img = new Image();
+        img.src = src;
+        img.alt = '';
+        img.decoding = 'async';
+        trail.appendChild(img);
+        return img;
+      });
+
+      const GAP = 96;
+      let index = 0;
+      let lastX = null;
+      let lastY = null;
+
+      trail.parentElement.addEventListener('pointermove', (event) => {
+        if (event.pointerType !== 'mouse') return;
+
+        if (lastX !== null && Math.hypot(event.clientX - lastX, event.clientY - lastY) < GAP) return;
+        lastX = event.clientX;
+        lastY = event.clientY;
+
+        const box = trail.getBoundingClientRect();
+        const img = pool[index % pool.length];
+        const tilt = (index % 2 ? 1 : -1) * (4 + (index % 3) * 2);
+        const base = `translate3d(${event.clientX - box.left - img.offsetWidth / 2}px, ${event.clientY - box.top - img.offsetHeight / 2}px, 0) rotate(${tilt}deg)`;
+        index += 1;
+
+        img.current?.cancel();
+        img.current = img.animate(
+          [
+            { opacity: 0, transform: `${base} scale(0.82)` },
+            { opacity: 1, transform: `${base} scale(1)`, offset: 0.16 },
+            { opacity: 0, transform: `${base} scale(1.04) translateY(-14px)` }
+          ],
+          { duration: 900, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)' }
+        );
+      }, { passive: true });
+    })();
   </script>
 
   <!-- ===== scale-grid script, verbatim from scalegrid-6480796b.html ===== -->
