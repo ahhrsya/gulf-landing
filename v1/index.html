@@ -7,7 +7,7 @@
   <title>Dubai Creative Park | Gulfalts</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="preload" href="../assets/creative-park-hero.avif" as="image" type="image/avif">
   <style>
@@ -23,7 +23,10 @@
 
     * { box-sizing: border-box; }
 
-    html { scroll-behavior: smooth; }
+    /* ponytail: Lenis now owns smooth scrolling — native scroll-behavior:smooth
+       fights it (two competing easing curves on every scroll tick), which is
+       what made scrolling feel heavy/laggy, especially in sticky sections. */
+    html { scroll-behavior: auto; }
 
     body {
       margin: 0;
@@ -31,6 +34,7 @@
       color: var(--ink);
       font-family: "DM Sans", Arial, sans-serif;
       font-size: 16px;
+      font-weight: 300;
       line-height: 1.35;
       text-rendering: optimizeLegibility;
     }
@@ -74,12 +78,17 @@
 
     .hero {
       position: relative;
-      height: 250vh;
+      /* ponytail: shrinking the hero to close the image→about gap also
+         shrank the actual scroll DISTANCE driving the crop animation
+         (range = height - viewport), making it feel rushed. The gap is now
+         solved independently (bottom-anchored shrink in .hero-media), so
+         this can go back to a tall, gradual scroll-track for a smooth
+         shrink without the gap coming back. */
+      height: 220vh;
       min-height: 0;
       padding: 0;
       background: #fff;
       overflow: visible;
-      isolation: isolate;
     }
 
     .hero-pin {
@@ -90,7 +99,11 @@
       overflow: hidden;
       padding: 80px 40px;
       background: color-mix(in srgb, #0b0b0b, #fff calc(var(--hero-light, 0) * 100%));
-      isolation: isolate;
+      /* ponytail: isolation:isolate here traps the fixed-position condensed
+         nav inside this stacking context, so its z-index:999 only wins
+         against siblings in here — later sections (e.g. the gym gallery)
+         would still paint over it. Removed so the nav's z-index competes
+         globally, as a fixed nav needs to. */
     }
 
     .hero-media,
@@ -100,13 +113,22 @@
     }
 
     .hero-media {
-      inset: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      /* ponytail: shrinking toward the center left equal blank space above
+         AND below the image inside the still-100svh pinned box — that
+         trailing half was the "too far from image" gap. Anchor the scale
+         to the bottom instead, so the image's bottom edge (not empty
+         space) sits right against the next section, with a small
+         deliberate 24px gap once fully shrunk. */
+      bottom: calc(48px * var(--hero-crop, 0));
       z-index: 0;
       overflow: hidden;
       background: #73736d;
       clip-path: inset(0 max(0px, calc((100vw - 100vh) / 2 * var(--hero-crop, 0))) round calc(78px * var(--hero-crop, 0)));
       transform: scale(calc(1 - (1 - var(--hero-end-scale, 0.44)) * var(--hero-light, 0)));
-      transform-origin: center;
+      transform-origin: center bottom;
       will-change: transform, clip-path;
     }
     .hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: center; filter: saturate(0.78) contrast(1.02); }
@@ -117,68 +139,65 @@
     }
 
     .hero-nav {
-      position: absolute;
-      inset: 80px 40px auto;
-      z-index: 2;
-      display: grid;
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      gap: 20px;
-      align-items: start;
+      position: fixed;
+      inset: 20px 40px auto;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
       color: color-mix(in srgb, #fff, var(--ink) calc(var(--hero-light, 0) * 100%));
+      transition: top 320ms cubic-bezier(.22, .61, .36, 1), width 320ms cubic-bezier(.22, .61, .36, 1), padding 320ms ease, background 320ms ease, border-radius 320ms ease, box-shadow 320ms ease;
     }
 
-    .hero-nav .brand { grid-column: 1 / 4; }
-    .hero-nav .nav-links:nth-of-type(1) { grid-column: 7 / 9; }
-    .hero-nav .nav-links:nth-of-type(2) { grid-column: 10 / 12; }
-    .hero-nav .hero-actions { grid-column: 12 / 13; }
+    /* ondo.finance-style condense: full-width transparent bar shrinks into
+       a fixed, centered, dark rounded pill once the page scrolls. Layout
+       (brand / links / cta) stays identical to the default state above —
+       only position, size and background change. */
+    .hero-nav.is-condensed {
+      position: fixed;
+      inset: 16px auto auto 50%;
+      transform: translateX(-50%);
+      width: min(920px, calc(100% - 48px));
+      padding: 8px 14px 8px 22px;
+      background: #0b0b0b;
+      color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+    }
 
-    .brand { position: relative; display: inline-flex; width: max-content; }
+    .hero-nav.is-condensed .brand img { width: 84px; }
+    .hero-nav.is-condensed .brand .logo-dark { opacity: 0; }
+
+    .brand { position: relative; display: inline-flex; width: max-content; flex: none; }
     .brand img { width: 104px; height: auto; }
     .brand .logo-dark { position: absolute; inset: 0 auto auto 0; opacity: var(--hero-light, 0); }
 
     .nav-links {
-      display: grid;
-      gap: 0;
-      padding-top: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 22px;
       font-size: 13px;
       line-height: 1.35;
     }
 
-    .nav-links a { width: max-content; }
-    .nav-links a,
-    .hero-actions a { text-decoration: none; }
-    .nav-links a:hover,
-    .hero-actions a:hover { opacity: 0.68; }
+    .nav-links a { width: max-content; text-decoration: none; }
+    .nav-links a:hover { opacity: 0.68; }
 
-    .hero-actions {
-      display: flex;
-      justify-content: end;
-      gap: 24px;
-      align-items: start;
-      padding-top: 0;
+    .nav-cta {
+      flex: none;
+      padding: 8px 16px;
+      background: #fff;
+      color: #0b0b0b;
+      border-radius: 8px;
       font-size: 13px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: opacity 180ms ease;
     }
 
-    .search { position: relative; display: inline-flex; align-items: center; padding-right: 18px; }
-    .search::before { content: ""; position: absolute; right: 5px; top: 3px; width: 7px; height: 7px; border: 1px solid currentColor; border-radius: 50%; }
-    .search::after { content: ""; position: absolute; right: 1px; top: 11px; width: 5px; border-top: 1px solid currentColor; transform: rotate(45deg); transform-origin: left center; }
-
-    .menu {
-      width: 22px;
-      height: 16px;
-      border-top: 1px solid currentColor;
-      border-bottom: 1px solid currentColor;
-      position: relative;
-    }
-
-    .menu::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 7px;
-      border-top: 1px solid currentColor;
-    }
+    .nav-cta:hover { opacity: 0.8; }
 
     .hero-copy {
       position: absolute;
@@ -192,6 +211,7 @@
       color: #fff;
       z-index: 2;
       color: color-mix(in srgb, #fff, var(--ink) calc(var(--hero-light, 0) * 100%));
+      opacity: calc(1 - var(--hero-crop, 0) * 1.3);
     }
 
     .hero-copy .eyebrow { margin-bottom: 22px; color: color-mix(in srgb, rgba(255, 255, 255, 0.86), var(--ink) calc(var(--hero-light, 0) * 100%)); }
@@ -246,38 +266,34 @@
       opacity: calc(1 - var(--hero-crop, 0) * 2.5);
     }
 
-    .hero-about-copy {
-      position: absolute;
-      z-index: 2;
-      left: 50%;
-      bottom: 6vh;
-      width: min(580px, calc(100% - 80px));
-      margin: 0;
-      transform: translate(-50%, calc(40px * (1 - var(--hero-light, 0))));
-      color: color-mix(in srgb, #fff, var(--ink) calc(var(--hero-light, 0) * 100%));
+    .about-copy { display: grid; place-items: center; padding: 0 40px 120px; background: var(--paper); }
+
+    .fill-text {
+      width: min(760px, 100%);
       text-align: center;
-      font-size: clamp(17px, 1.8vw, 25px);
-      line-height: 1.1;
-      opacity: var(--hero-light, 0);
-      will-change: opacity, transform;
+      color: var(--ink);
+      font-size: clamp(20px, 2.4vw, 32px);
+      letter-spacing: -0.02em;
+      line-height: 1.4;
     }
 
-    .metrics { min-height: 100svh; padding: 80px 40px; display: grid; align-content: center; }
+    .fill-text p { margin: 0 0 20px; }
+    .fill-text p:last-child { margin-bottom: 0; }
+    .fill-word { opacity: 0.25; }
+
+    .metrics { min-height: 100svh; padding: 120px 40px; display: grid; align-content: center; }
 
     .metrics-grid {
       display: grid;
       grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.15fr);
       gap: clamp(48px, 8vw, 128px);
-      align-items: center;
+      align-items: end;
     }
 
-    .metrics-intro { max-width: 430px; padding-top: 22px; font-size: clamp(23px, 2.8vw, 38px); letter-spacing: -0.045em; line-height: 0.98; }
+    .metrics-intro { max-width: 430px; padding-top: 22px; font-size: clamp(19px, 2.2vw, 30px); letter-spacing: -0.03em; line-height: 1.05; }
     .metrics-intro .eyebrow { margin-bottom: 24px; font-size: 12px; letter-spacing: 0.08em; line-height: 1.35; }
     .metrics-intro .muted { color: #999997; }
-    .metrics-source { margin: 42px 0 0; color: #999997; font-size: 11px; letter-spacing: 0; line-height: 1.35; }
-    .metrics-source a { color: inherit; text-underline-offset: 3px; }
 
-    .metric-list { border-top: 1px solid var(--line); }
     .metric {
       display: grid;
       grid-template-columns: minmax(290px, 1fr) minmax(240px, 0.62fr);
@@ -288,7 +304,7 @@
       border-bottom: 1px solid var(--line);
     }
 
-    .metric-value { font-size: clamp(68px, 7.8vw, 126px); font-weight: 400; letter-spacing: -0.09em; line-height: 0.86; white-space: nowrap; }
+    .metric-value { font-size: clamp(36px, 3.6vw, 64px); font-weight: 400; letter-spacing: -0.03em; line-height: 0.86; white-space: nowrap; }
     .metric-label { max-width: 24ch; color: #777774; font-family: "DM Sans", Arial, sans-serif; font-size: clamp(14px, 1.1vw, 17px); line-height: 1.1; }
 
     .immersive { padding: 0; overflow: visible; background: #fff; }
@@ -297,7 +313,7 @@
     .scale-grid { padding: 0 1.25rem }
     .scale-grid-wrap { position: relative; overflow: hidden }
     .scale-grid-content { display: grid; gap: 1rem }
-    .scale-grid-item { position: relative; overflow: hidden; background: #111; aspect-ratio: 3/2 }
+    .scale-grid-item { position: relative; overflow: hidden; background: #111; aspect-ratio: 3/2; border-radius: 8px }
     .scale-grid-item img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block }
 
     @media (min-width: 650px) {
@@ -328,15 +344,16 @@
       .scale-grid-wrap { position: static; height: auto }
     }
 
-    .portfolio { min-height: 100svh; padding: 80px 40px; }
+    .portfolio { min-height: 100svh; padding: 120px 40px; }
     .portfolio-eyebrow { margin-bottom: 26px; }
 
-    .portfolio-head { display: flex; align-items: end; justify-content: flex-start; gap: 40px; margin-bottom: 64px; }
-    .portfolio-head h2 { margin-bottom: 0; font-size: clamp(54px, 8vw, 124px); font-weight: 400; letter-spacing: -0.08em; line-height: 0.8; }
+    .portfolio-head { display: block; margin-bottom: 148px; }
+    .portfolio-head h2 { margin-bottom: 0; font-size: clamp(40px, 5.6vw, 88px); font-weight: 400; letter-spacing: -0.04em; line-height: 0.9; }
+    .portfolio-subhead { max-width: 34ch; margin: 20px 0 0; color: var(--muted); font-size: clamp(15px, 1.3vw, 18px); line-height: 1.4; }
     .project-grid {
       display: grid;
       grid-template-columns: repeat(12, 1fr);
-      gap: 42px 22px;
+      gap: 168px 22px;
       align-items: start;
     }
 
@@ -348,15 +365,15 @@
     .project-card p { margin-bottom: 0; color: #898985; font-family: "DM Sans", Arial, sans-serif; font-size: 14px; }
     .project-card.one { grid-column: 1 / 5; grid-row: 1; margin-top: 0; }
     .project-card.two { grid-column: 1 / 7; grid-row: 2; margin-top: 0; }
-    .project-card.three { grid-column: 7 / 13; grid-row: 1; margin-top: 0; }
-    .project-card.four { grid-column: 8 / 13; grid-row: 2; margin-top: 64px; }
-    .project-card.one figure { aspect-ratio: 1.45 / 1; border-radius: 5px; }
-    .project-card.two figure { aspect-ratio: 1.65 / 1; border-radius: 5px; }
-    .project-card.three figure { aspect-ratio: 1.35 / 1; border-radius: 5px; }
-    .project-card.four figure { aspect-ratio: 1.45 / 1; border-radius: 5px; }
+    .project-card.three { grid-column: 7 / 13; grid-row: 1; margin-top: 56px; }
+    .project-card.four { grid-column: 8 / 13; grid-row: 2; margin-top: 140px; }
+    .project-card.one figure { aspect-ratio: 1.45 / 1; border-radius: 8px; }
+    .project-card.two figure { aspect-ratio: 1.65 / 1; border-radius: 8px; }
+    .project-card.three figure { aspect-ratio: 1.35 / 1; border-radius: 8px; }
+    .project-card.four figure { aspect-ratio: 1.45 / 1; border-radius: 8px; }
 
     .our-strategies {
-      min-height: 340vh;
+      min-height: 420vh;
       padding: 0 40px;
       background: #0d0d0d;
       overflow: visible;
@@ -379,15 +396,17 @@
       left: 0;
       right: 0;
       margin: 0;
-      font-size: clamp(54px, 8vw, 124px);
+      font-size: clamp(40px, 5.6vw, 88px);
       font-weight: 400;
-      letter-spacing: -0.105em;
-      line-height: 0.78;
+      letter-spacing: -0.04em;
+      line-height: 0.9;
       color: #fff;
     }
 
     .strategy-story-stage > h2 span { color: #fff; }
-    .strategy-story-side { position: absolute; z-index: 3; right: 0; bottom: 10%; width: min(390px, 29vw); margin: 0; color: rgba(255, 255, 255, 0.72); font-family: "DM Sans", Arial, sans-serif; font-size: clamp(15px, 1.35vw, 19px); letter-spacing: -0.02em; line-height: 1.18; }
+    .strategy-story-side { position: absolute; z-index: 3; bottom: 10%; width: min(340px, 27vw); margin: 0; color: rgba(255, 255, 255, 0.72); font-family: "DM Sans", Arial, sans-serif; font-size: clamp(15px, 1.35vw, 19px); letter-spacing: -0.02em; line-height: 1.18; }
+    .strategy-story-side-left { left: 0; }
+    .strategy-story-side-right { right: 0; }
 
     .our-strategy-cards { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
     .our-strategy-card {
@@ -423,13 +442,13 @@
 
     .strategies {
       min-height: 100svh;
-      padding: 80px 40px;
+      padding: 120px 40px;
       background: #ffffff;
     }
     .approach-layout {
       display: grid;
       grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
-      grid-template-rows: auto minmax(480px, 1fr);
+      grid-template-rows: auto auto;
       column-gap: clamp(56px, 9vw, 150px);
       row-gap: clamp(54px, 7vw, 104px);
     }
@@ -441,14 +460,13 @@
     .approach-list-intro { margin-bottom: clamp(42px, 5vw, 72px); }
     .approach-list-intro .eyebrow { margin-bottom: 24px; color: var(--muted); }
     .approach-list-intro h2 {
-      max-width: 6ch;
+      max-width: 8ch;
       margin: 0;
-      font-size: clamp(52px, 5.8vw, 88px);
+      font-size: clamp(40px, 5.6vw, 88px);
       font-weight: 400;
-      letter-spacing: -0.09em;
-      line-height: 0.84;
+      letter-spacing: -0.04em;
+      line-height: 0.9;
     }
-    .approach-list-items { border-top: 1px solid rgba(11, 11, 11, 0.16); }
     .approach-copy-icon {
       display: grid;
       place-items: center;
@@ -460,35 +478,24 @@
     .approach-copy-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.5; }
     .approach-copy-icon svg circle[fill] { fill: currentColor; stroke: none; }
     .approach-copy-icon svg path[fill] { fill: currentColor; stroke: none; }
-    }
+    .approach-list-items { display: flex; flex-wrap: wrap; gap: 10px; }
     .approach-row {
-      display: grid;
-      grid-template-columns: 36px minmax(0, 1fr);
+      display: inline-flex;
       align-items: center;
-      width: 100%;
-      gap: 0;
-      padding: 15px 0;
-      border: 0;
-      border-bottom: 1px solid rgba(11, 11, 11, 0.16);
+      width: auto;
+      gap: 8px;
+      padding: 10px 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
       background: transparent;
       color: var(--ink);
       text-align: left;
       cursor: pointer;
+      transition: background 200ms ease, color 200ms ease, border-color 200ms ease;
     }
-    .approach-row-number {
-      display: grid;
-      place-items: center;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #e8e8e5;
-      font-size: 11px;
-      line-height: 1;
-      transition: background 220ms ease, color 220ms ease;
-    }
-    .approach-row-title { font-size: 16px; font-weight: 400; letter-spacing: -0.02em; }
-    .approach-row.is-active .approach-row-number { background: var(--ink); color: #fff; }
-    .approach-row:hover .approach-row-title, .approach-row:focus-visible .approach-row-title { text-decoration: underline; text-underline-offset: 4px; }
+    .approach-row-title { font-size: 14px; font-weight: 400; letter-spacing: -0.01em; }
+    .approach-row.is-active { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .approach-row:hover:not(.is-active) { border-color: var(--ink); }
     .approach-copy {
       grid-column: 2;
       grid-row: 1;
@@ -498,12 +505,16 @@
       transition: opacity 180ms ease, transform 260ms cubic-bezier(.16, 1, .3, 1);
     }
     .approach-copy.is-changing { opacity: 0; transform: translateY(8px); }
-    .approach-copy-description { max-width: 48ch; margin: 0; color: var(--muted); font-size: clamp(20px, 2vw, 30px); letter-spacing: -0.045em; line-height: 1.08; }
+    .approach-copy-description { max-width: 48ch; margin: 0; color: var(--muted); font-size: clamp(15px, 1.3vw, 18px); letter-spacing: -0.01em; line-height: 1.5; }
     .approach-image { margin: 0; overflow: hidden; background: #d8d8d5; }
-    .approach-image img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.76); transition: opacity 180ms ease, transform 500ms cubic-bezier(.16, 1, .3, 1); }
-    .approach-image.is-changing img { opacity: 0; transform: scale(1.035); }
-    .approach-support { grid-column: 1; grid-row: 2; align-self: start; width: min(100%, 420px); aspect-ratio: 1.35 / 1; border-radius: 5px; }
-    .approach-main { grid-column: 2; grid-row: 2; align-self: start; width: 100%; aspect-ratio: 0.78; border-radius: 5px; }
+    /* ponytail: clip-path on the img promotes it to its own composited layer,
+       which some browsers fail to clip to the parent figure's border-radius —
+       the classic "square corner poking through a rounded container" bug.
+       Setting border-radius: inherit directly on the img fixes it regardless. */
+    .approach-image img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; filter: saturate(0.76); clip-path: inset(0 0 0 0); transition: clip-path 550ms linear; }
+    .approach-image.is-changing img { clip-path: inset(100% 0 0 0); transition: none; }
+    .approach-support { grid-column: 1; grid-row: 2; align-self: start; width: min(100%, 420px); aspect-ratio: 1.35 / 1; border-radius: 8px; }
+    .approach-main { grid-column: 2; grid-row: 2; align-self: start; width: 100%; aspect-ratio: 1.45 / 1; border-radius: 8px; }
 
     @media (prefers-reduced-motion: reduce) {
       .our-strategy-cards { position: relative; display: grid; gap: 16px; padding-top: 220px; }
@@ -513,8 +524,8 @@
     .map-section {
       height: 100svh;
       min-height: 720px;
-      padding: 80px 40px;
-      background: #f8f8f7;
+      padding: 120px 40px;
+      background: var(--paper);
       display: grid;
       grid-template-rows: auto minmax(0, 1fr);
       gap: 24px;
@@ -522,46 +533,35 @@
     }
 
     .map-heading { max-width: 1100px; margin: 0 auto; text-align: center; }
-    .map-heading h2 { max-width: 1000px; margin: 0 auto 18px; font-size: clamp(50px, 6.8vw, 104px); font-weight: 400; letter-spacing: -0.09em; line-height: 0.82; }
-    .map-heading p { max-width: 46ch; margin: 0 auto; color: var(--muted); font-size: 15px; }
-    .map-wrap { position: relative; width: min(100%, 75svh, 1120px); aspect-ratio: 5 / 3; min-height: 0; margin: 0 auto; overflow: hidden; border-radius: 24px; }
-    #dubai-map { width: 100%; height: 100%; background: #e8e8e5; filter: grayscale(1) contrast(0.92); }
-    .leaflet-control-zoom { border: 0 !important; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important; }
-    .leaflet-control-zoom a { color: var(--ink) !important; }
+    .map-heading .eyebrow { font-size: 11px; }
+    .map-heading h2 { max-width: 1000px; margin: 0 auto 18px; font-size: clamp(40px, 5.6vw, 88px); font-weight: 400; letter-spacing: -0.04em; line-height: 0.9; text-wrap: balance; }
+    .map-heading p { max-width: 46ch; margin: 0 auto; color: var(--muted); font-size: clamp(15px, 1.3vw, 18px); line-height: 1.5; }
+    .map-wrap { position: relative; width: 100%; aspect-ratio: 16 / 8; min-height: 0; margin: 0 auto; overflow: hidden; }
+    #dubai-map { width: 100%; height: 100%; background: #fff; }
     .leaflet-control-attribution { background: rgba(255, 255, 255, 0.82) !important; }
-    .dubai-marker { display: block; width: 16px; height: 16px; box-sizing: border-box; border: 3px solid #fff; border-radius: 50%; background: #c94d3d; box-shadow: 0 0 0 6px rgba(201, 77, 61, 0.18); transition: transform 180ms ease, box-shadow 180ms ease; }
-    .leaflet-marker-icon:hover .dubai-marker { transform: scale(1.16); box-shadow: 0 0 0 8px rgba(201, 77, 61, 0.2); }
-    .leaflet-popup-content-wrapper { padding: 0; border-radius: 0; box-shadow: 0 14px 34px rgba(15, 15, 15, 0.16); }
-    .leaflet-popup-content { width: 250px !important; margin: 0; }
-    .map-card { color: var(--ink); font-family: "DM Sans", Arial, sans-serif; }
-    .map-card-image { width: 100%; height: 104px; object-fit: cover; filter: saturate(0.78); }
-    .map-card-body { padding: 16px 18px 18px; }
-    .map-card-kicker { margin-bottom: 9px; color: #777774; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
-    .map-card h3 { margin: 0 0 8px; font-size: 22px; font-weight: 400; letter-spacing: -0.05em; line-height: 0.95; }
-    .map-card p { margin: 0; color: #777774; font-size: 13px; line-height: 1.25; }
+    .city-label { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 4px 10px; font-family: "DM Sans", Arial, sans-serif; font-size: 13px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); }
 
     .cta {
       position: relative;
       overflow: hidden;
       min-height: 72svh;
-      padding: 80px 40px;
-      background: #0b0b0b;
-      color: #fff;
-      display: grid;
-      grid-template-columns: minmax(280px, 1.25fr) minmax(220px, 0.75fr);
-      gap: clamp(48px, 10vw, 160px);
-      align-items: end;
+      padding: 120px 40px;
+      background: var(--paper);
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: clamp(32px, 6vw, 56px);
     }
 
-    .cta > div:not(.cta-trail) { position: relative; z-index: 1; }
-    .cta .eyebrow { color: #8b8b88; }
-    .cta h2 { max-width: 10ch; margin: 0; font-size: clamp(58px, 8vw, 126px); font-weight: 400; letter-spacing: -0.09em; line-height: 0.8; }
-    .cta-copy { max-width: 30ch; margin: 0 0 4px; color: #c6c6c2; font-size: clamp(20px, 2vw, 30px); letter-spacing: -0.045em; line-height: 1; }
-    .cta-link { display: inline-flex; align-items: center; gap: 16px; margin-top: 34px; padding-bottom: 8px; border-bottom: 1px solid #fff; color: #fff; font-size: 15px; text-decoration: none; }
-    .cta-link::after { content: "↗"; font-size: 20px; }
-    .cta-meta { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 22px 0 0; color: #777774; font-size: 13px; letter-spacing: -0.01em; }
-    .cta-meta a { color: #c6c6c2; text-decoration: none; }
-    .cta-meta a:hover { color: #fff; }
+    .cta > div:not(.cta-trail) { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
+    .cta .eyebrow { color: var(--muted); }
+    .cta h2 { max-width: 18ch; margin: 0; font-size: clamp(40px, 5.6vw, 88px); font-weight: 400; letter-spacing: -0.04em; line-height: 0.9; text-wrap: balance; }
+    .cta-copy { max-width: 40ch; margin: 0 0 4px; color: var(--muted); font-size: clamp(15px, 1.3vw, 18px); letter-spacing: -0.01em; line-height: 1.5; }
+    .cta-button { display: inline-flex; align-items: center; gap: 10px; margin-top: 34px; padding: 8px 16px; background: var(--ink); color: #fff; border-radius: 8px; font-size: 13px; text-decoration: none; transition: opacity 180ms ease; }
+    .cta-button:hover { opacity: 0.8; }
 
     .cta-trail { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
     .cta-trail img {
@@ -576,9 +576,24 @@
       will-change: transform, opacity;
     }
 
+    /* ponytail: reveal-on-scroll footer — main sits above it in z-index, but
+       must NOT have its own background (each section already paints its own),
+       otherwise it'd cover the fixed footer through .footer-spacer too, the
+       one deliberately-transparent area meant to uncover it. */
+    main { position: relative; z-index: 1; }
+    .footer-spacer { width: 100%; }
+    /* below .hero-nav's z-index:999 so the nav still wins; above everything else */
+    .viewport-blur { position: fixed; left: 0; right: 0; bottom: 0; height: 150px; pointer-events: none; z-index: 500; opacity: 1; transition: opacity 300ms ease; }
+    .viewport-blur.is-hidden { opacity: 0; }
+
     .site-footer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 0;
       min-height: 74svh;
-      padding: 80px 40px;
+      padding: 120px 40px 24px;
       background: #0b0b0b;
       color: #fff;
       display: flex;
@@ -586,14 +601,24 @@
       justify-content: space-between;
     }
 
-    .footer-top { display: grid; grid-template-columns: 1.1fr 1fr 1fr auto; gap: 40px; font-size: 14px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+    .footer-top { display: grid; grid-template-columns: 1.3fr 0.9fr 0.9fr 0.9fr; gap: 40px; font-size: 14px; }
     .footer-label { margin-bottom: 16px; color: #777774; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
     .footer-links { display: grid; gap: 8px; }
     .footer-links a { color: #fff; text-decoration: none; }
     .footer-links a:hover { color: #aaa; }
-    .footer-brand { width: calc(100% + 80px); margin-top: 80px; margin-left: -40px; font-size: clamp(140px, 23vw, 430px); font-weight: 400; letter-spacing: -0.13em; line-height: 0.66; text-align: left; white-space: nowrap; }
-    .footer-bottom { display: flex; justify-content: space-between; gap: 28px; color: #777774; font-size: 12px; }
-    .footer-eyebrow { margin-bottom: 34px; color: #8b8b88; }
+    .footer-brand { display: block; width: min(1400px, 94%); margin: 80px auto 0; height: auto; }
+    .footer-bottom { display: flex; justify-content: space-between; gap: 28px; margin-top: 28px; color: #777774; font-size: 12px; }
+
+    .footer-newsletter h3 { margin: 0 0 22px; font-size: clamp(28px, 3vw, 38px); font-weight: 400; letter-spacing: -0.03em; }
+    .footer-signup { display: flex; align-items: center; gap: 10px; max-width: 360px; }
+    .footer-signup input { flex: 1; min-width: 0; background: none; border: none; border-bottom: 1px solid rgba(255, 255, 255, 0.28); color: #fff; font-family: inherit; font-size: 15px; padding: 8px 0; }
+    .footer-signup input::placeholder { color: rgba(255, 255, 255, 0.48); }
+    .footer-signup input:focus { outline: none; border-bottom-color: #fff; }
+    .footer-signup button { flex: none; display: grid; place-items: center; padding: 10px 18px; border: none; border-radius: 8px; background: #fff; color: #0b0b0b; cursor: pointer; transition: opacity 180ms ease; }
+    .footer-signup button:hover { opacity: 0.8; }
+    .footer-signup-note { max-width: 300px; margin: 14px 0 0; color: #777774; font-size: 12px; line-height: 1.5; }
 
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
@@ -603,24 +628,24 @@
     @media (max-width: 820px) {
       :root { --section-gap: 24px; }
       .section { width: 100%; margin-top: 0; padding-left: 20px; padding-right: 20px; }
-      .hero { height: 230vh; min-height: 0; padding: 0; }
+      .hero { height: 220vh; min-height: 0; padding: 0; }
       .hero-pin { min-height: 0; padding: 34px 28px 28px; }
       .hero-media, .hero-media::after { inset: 0; }
-      .hero-nav { inset: 34px 28px auto; grid-template-columns: 1fr auto; gap: 16px; }
-      .hero-nav .brand, .hero-nav .hero-actions { grid-column: auto; }
+      .hero-nav { inset: 18px 20px auto; gap: 16px; }
       .nav-links { display: none; }
-      .hero-actions { gap: 16px; font-size: 12px; }
+      .nav-cta { padding: 8px 16px; font-size: 12px; }
       .hero-copy { left: 28px; right: 28px; bottom: 64px; }
       .hero-copy .eyebrow { margin-bottom: 18px; }
       h1 { max-width: 10ch; flex-direction: column; gap: calc((60vh * 0.6 + 24px) * var(--hero-light, 0) * 2); font-size: clamp(40px, 11vw, 64px); line-height: 0.94; white-space: normal; }
       h1 span:first-child, h1 span:last-child { transform: none; }
       .hero-scroll-cue { right: auto; bottom: 6vh; }
-      .hero-about-copy { width: calc(100% - 40px); font-size: 17px; }
+      .about-copy { padding: 0 20px 60px; }
+      .fill-text { font-size: clamp(18px, 5vw, 24px); }
       .metrics { padding: 62px 20px; }
       .metrics-grid { grid-template-columns: 1fr; gap: 36px; min-height: 0; }
       .metrics-intro { max-width: 330px; }
       .metric { grid-template-columns: minmax(0, 0.9fr) minmax(135px, 0.7fr); gap: 20px; min-height: 98px; padding: 20px 0 22px; }
-      .metric-value { font-size: clamp(40px, 10vw, 68px); }
+      .metric-value { font-size: clamp(26px, 6vw, 38px); }
       .metric-label { max-width: 20ch; font-size: 14px; line-height: 1.08; }
       .immersive { padding: 0; }
       .portfolio { padding: 60px 20px 36px; }
@@ -628,18 +653,20 @@
       .project-grid { grid-template-columns: 1fr 1fr; gap: 30px 12px; }
       .project-card.one, .project-card.two, .project-card.three, .project-card.four { grid-column: auto; grid-row: auto; margin-top: 0; }
       .project-card.three, .project-card.four { grid-column: 1 / 3; }
-      .our-strategies { min-height: 300vh; padding: 0 20px; }
+      .our-strategies { min-height: 340vh; padding: 0 20px; }
       .strategy-story-stage { min-height: 680px; }
       .strategy-story-eyebrow { top: 72px; }
-      .strategy-story-stage > h2 { top: 132px; left: 0; right: 0; font-size: clamp(54px, 12vw, 88px); }
-      .strategy-story-side { right: 0; bottom: 7%; width: min(280px, 46%); font-size: 14px; line-height: 1.2; }
+      .strategy-story-stage > h2 { top: 132px; left: 0; right: 0; font-size: clamp(38px, 10vw, 56px); }
+      .strategy-story-side { left: 0; right: 0; width: 100%; font-size: 14px; line-height: 1.3; }
+      .strategy-story-side-left { bottom: 15%; }
+      .strategy-story-side-right { bottom: 6%; }
       .our-strategy-card:nth-child(1), .our-strategy-card:nth-child(2), .our-strategy-card:nth-child(3) { left: 50%; }
       .our-strategy-card { width: min(360px, 78vw); padding: 24px; }
       .our-strategy-card-bottom h3 { font-size: clamp(26px, 7vw, 40px); }
       .our-strategy-card-bottom p { font-size: 14px; }
-      .cta { min-height: 620px; padding: 72px 20px 42px; grid-template-columns: 1fr; gap: 52px; }
-      .cta h2 { font-size: clamp(58px, 16vw, 96px); }
-      .cta-copy { max-width: 24ch; font-size: clamp(22px, 6vw, 34px); }
+      .cta { min-height: 620px; padding: 72px 20px 42px; gap: 52px; }
+      .cta h2 { font-size: clamp(38px, 10vw, 56px); }
+      .cta-copy { max-width: 30ch; font-size: 15px; }
       .strategies { min-height: 0; padding: 72px 20px 64px; }
       .approach-layout { display: grid; grid-template-columns: 1fr; grid-template-rows: auto; gap: 36px; }
       .approach-list, .approach-copy, .approach-support, .approach-main { grid-column: 1; }
@@ -647,20 +674,42 @@
       .approach-copy { grid-row: 2; }
       .approach-copy { padding-top: 0; }
       .approach-support { grid-row: 3; width: min(100%, 420px); aspect-ratio: 1.35 / 1; }
-      .approach-main { grid-row: 4; aspect-ratio: 0.9; }
+      .approach-main { grid-row: 4; aspect-ratio: 1.3 / 1; }
       .approach-copy-description { font-size: 15px; }
-      .approach-row { padding: 14px 0; }
+      .approach-row { padding: 9px 14px; }
       .map-section { height: auto; min-height: 0; padding: 72px 20px 64px; display: block; }
       .map-heading { margin-bottom: 32px; }
       .map-wrap { width: 100%; height: auto; aspect-ratio: 5 / 3; min-height: 0; }
       .footer-top { grid-template-columns: 1fr 1fr; gap: 34px 24px; }
-      .footer-brand { width: calc(100% + 40px); margin-top: 100px; margin-left: -20px; font-size: clamp(72px, 20vw, 150px); }
+      .footer-newsletter { grid-column: 1 / 3; margin-bottom: 10px; }
+      .footer-signup { max-width: 100%; }
+      .footer-brand { width: min(520px, 94%); margin: 60px auto 0; }
       .footer-bottom { align-items: start; flex-direction: column; gap: 8px; }
-      .site-footer { padding: 48px 20px 32px; }
+      .site-footer { padding: 48px 20px 16px; }
     }
   </style>
 </head>
 <body>
+  <!-- ponytail: lives outside .hero-pin on purpose — .hero-pin is
+       position:sticky, and sticky/fixed ancestors always open their own
+       stacking context (independent of isolation), which was still
+       trapping this nav's z-index under later sections. Moved to a
+       .hero-pin/.hero sibling so nothing above it can out-stack it. -->
+  <header class="hero-nav" aria-label="Primary navigation">
+    <a class="brand" href="#hero" aria-label="Gulfalts home">
+      <img class="logo-light" src="../assets/gulfalts-white.svg" alt="Gulfalts">
+      <img class="logo-dark" src="../assets/gulfalts-black.svg" alt="">
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#about">Explore</a>
+      <a href="#portfolio">Projects</a>
+      <a href="#what-we-do">What We Do</a>
+      <a href="#metrics">Sustainability</a>
+      <a href="#dubai">Digital Future</a>
+      <a href="#contact">Careers</a>
+    </nav>
+    <a class="nav-cta" href="mailto:info@gulfalts.com?subject=Dubai%20Creative%20Park%20enquiry">Get in Touch</a>
+  </header>
   <main>
     <section class="section hero" id="hero" aria-labelledby="hero-title">
       <div class="hero-pin hero__pin">
@@ -668,33 +717,18 @@
           <img src="../assets/creative-park-hero.avif" alt="">
         </div>
 
-        <header class="hero-nav" aria-label="Primary navigation">
-          <a class="brand" href="#hero" aria-label="Gulfalts home">
-            <img class="logo-light" src="../assets/gulfalts-white.svg" alt="Gulfalts">
-            <img class="logo-dark" src="../assets/gulfalts-black.svg" alt="">
-          </a>
-          <nav class="nav-links" aria-label="Explore">
-            <a href="#about">Explore</a>
-            <a href="#portfolio">Projects</a>
-            <a href="#what-we-do">What We Do</a>
-          </nav>
-          <nav class="nav-links" aria-label="Company">
-            <a href="#metrics">Sustainability</a>
-            <a href="#dubai">Digital Future</a>
-            <a href="#contact">Careers</a>
-          </nav>
-          <div class="hero-actions">
-            <a class="search" href="#portfolio">Search</a>
-            <a class="menu" href="#portfolio" aria-label="Open menu"></a>
-          </div>
-        </header>
-
         <div class="hero-copy">
           <p class="eyebrow">Dubai Creative Park</p>
           <h1 id="hero-title"><span>Where better business</span><span>meets better living.</span></h1>
         </div>
         <p class="hero-scroll-cue" aria-hidden="true">Scroll to explore ↓</p>
-        <p class="hero-about-copy" id="about">Dubai Creative Park brings fitness, sport, wellness, curated F&amp;B and green landscape together inside one integrated destination.</p>
+      </div>
+    </section>
+
+    <section class="section about-copy" id="about" aria-label="About Gulf Alternatives">
+      <div class="fill-text">
+        <p>Gulf Alternatives is a Dubai-based asset manager and commercial real estate developer, where yields of 15%+ outpace 3&ndash;5% in cities like London and Singapore.</p>
+        <p>Since 2021, we&rsquo;ve assembled a concentrated portfolio anchored by long-term leases, dollarized income and blue-chip tenants &mdash; in a market with 800+ family offices in DIFC and $500M+ in daily real estate transactions.</p>
       </div>
     </section>
 
@@ -704,7 +738,6 @@
           <p class="eyebrow">At a glance</p>
           <p id="metrics-title">Gulfalts is building a focused portfolio across Dubai's fastest-growing sectors.</p>
           <p class="muted">Public portfolio figures, paired with the market context that makes Dubai investable.</p>
-          <p class="metrics-source">Sources: <a href="https://www.gulfalts.com/" target="_blank" rel="noreferrer">Gulfalts portfolio</a> and <a href="https://www.difc.com/whats-on/news/dubai-international-financial-centre-announces-landmark-annual-results-for-2025" target="_blank" rel="noreferrer">DIFC 2025 results</a>.</p>
         </div>
         <div class="metric-list" aria-label="Public portfolio and market metrics">
           <div class="metric">
@@ -747,6 +780,7 @@
       <p class="eyebrow portfolio-eyebrow">Our portfolio</p>
       <div class="portfolio-head">
         <h2 id="portfolio-title">Featured projects</h2>
+        <p class="portfolio-subhead">A curated selection of commercial destinations across Dubai's fastest-growing districts, each built and managed by Gulfalts end to end.</p>
       </div>
 
       <div class="project-grid">
@@ -777,24 +811,20 @@
       <div class="approach-layout">
         <div class="approach-list" aria-label="Gulfalts investment approach">
           <div class="approach-list-intro">
-            <p class="eyebrow">Our approach</p>
-            <h2>What We Do</h2>
+            <p class="eyebrow">What We Do</p>
+            <h2>How We Invest</h2>
           </div>
           <div class="approach-list-items">
             <button class="approach-row is-active" type="button" data-approach-index="0" aria-pressed="true">
-              <span class="approach-row-number">1</span>
               <span class="approach-row-title">Conviction</span>
             </button>
             <button class="approach-row" type="button" data-approach-index="1" aria-pressed="false">
-              <span class="approach-row-number">2</span>
               <span class="approach-row-title">Connectivity</span>
             </button>
             <button class="approach-row" type="button" data-approach-index="2" aria-pressed="false">
-              <span class="approach-row-number">3</span>
               <span class="approach-row-title">Scale</span>
             </button>
             <button class="approach-row" type="button" data-approach-index="3" aria-pressed="false">
-              <span class="approach-row-number">4</span>
               <span class="approach-row-title">Future proof assets</span>
             </button>
           </div>
@@ -820,7 +850,8 @@
       <div class="strategy-story-stage">
         <p class="eyebrow strategy-story-eyebrow">Our strategies</p>
         <h2 id="our-strategies-title">We shape spaces<br><span>for everyday life.</span></h2>
-        <p class="strategy-story-side">A connected destination where movement, wellness and community shape everyday life.</p>
+        <p class="strategy-story-side strategy-story-side-left">We develop and manage commercial real estate across Dubai's fastest-growing districts, pairing long-term leases with blue-chip, dollarized tenants for durable income.</p>
+        <p class="strategy-story-side strategy-story-side-right">From wellness and fitness to fintech and automotive, each asset is built as a connected destination — where movement, work and community shape everyday life.</p>
 
         <div class="our-strategy-cards" aria-label="Gulfalts strategy pillars">
           <article class="our-strategy-card" data-our-strategy-card>
@@ -859,9 +890,9 @@
 
     <section class="section map-section" id="dubai" aria-labelledby="dubai-title">
       <div class="map-heading">
-        <p class="eyebrow">Dubai, United Arab Emirates</p>
-        <h2 id="dubai-title">A place connected to<br>the city.</h2>
-        <p>Explore Dubai in context. The map stays focused on the city and gives the destination a clear geographic point of reference.</p>
+        <p class="eyebrow">Location</p>
+        <h2 id="dubai-title">A place connected to the city.</h2>
+        <p>Gulfalts is anchored in Dubai — a market defined by record FDI inflows and a surging population, giving our portfolio a clear geographic point of reference.</p>
       </div>
       <div class="map-wrap">
         <div id="dubai-map" role="application" aria-label="Interactive map focused on Dubai"></div>
@@ -872,24 +903,32 @@
       <div class="cta-trail" aria-hidden="true"></div>
       <div>
         <p class="eyebrow">Get in touch</p>
-        <h2 id="cta-title">Build what comes next.</h2>
+        <h2 id="cta-title">Build what comes next for Dubai.</h2>
       </div>
       <div>
         <p class="cta-copy">We partner with institutions, family offices and development partners building category-defining destinations in Dubai.</p>
-        <a class="cta-link" href="mailto:info@gulfalts.com?subject=Dubai%20Creative%20Park%20enquiry">Start a conversation</a>
-        <p class="cta-meta">
-          <a href="mailto:info@gulfalts.com">info@gulfalts.com</a>
-          <span aria-hidden="true">·</span>
-          <span>Dubai, UAE</span>
-        </p>
+        <a class="cta-button" href="mailto:info@gulfalts.com?subject=Dubai%20Creative%20Park%20enquiry">Start a conversation</a>
       </div>
     </section>
 
-    <footer class="section site-footer" id="contact">
-      <p class="eyebrow footer-eyebrow">Gulf Alternatives</p>
+    <div class="footer-spacer" aria-hidden="true"></div>
+  </main>
+
+  <footer class="section site-footer" id="contact">
       <div class="footer-top">
+        <div class="footer-newsletter">
+          <h3>Stay updated</h3>
+          <form class="footer-signup" data-footer-signup>
+            <label class="sr-only" for="footer-email">Email address</label>
+            <input id="footer-email" type="email" placeholder="Enter your email" autocomplete="email" required>
+            <button type="submit" aria-label="Subscribe">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </button>
+          </form>
+          <p class="footer-signup-note">Be the first to hear about venue news, openings and Gulf Alternatives updates.</p>
+        </div>
         <div>
-          <p class="footer-label">Navigation</p>
+          <p class="footer-label">Navigate</p>
           <div class="footer-links">
             <a href="#about">About</a>
             <a href="#portfolio">Projects</a>
@@ -907,127 +946,146 @@
           </div>
         </div>
         <div>
-          <p class="footer-label">Contact us</p>
+          <p class="footer-label">Connect</p>
           <div class="footer-links">
             <a href="mailto:info@gulfalts.com">info@gulfalts.com</a>
             <span>Dubai, UAE</span>
+            <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn</a>
+            <a href="https://x.com/" target="_blank" rel="noreferrer">X</a>
           </div>
         </div>
-        <div class="footer-links" aria-label="Social links">
-          <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn</a>
-          <a href="https://x.com/" target="_blank" rel="noreferrer">X</a>
-        </div>
       </div>
-      <div class="footer-brand" aria-label="Gulfalts">GULFALTS</div>
+      <img class="footer-brand" src="../assets/gulfalts-white.svg" alt="Gulfalts">
       <div class="footer-bottom">
         <span>© 2026 Gulf Alternatives. All rights reserved.</span>
         <span>Institutional commercial real estate in Dubai</span>
       </div>
     </footer>
-  </main>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
   <script>
+    // ponytail: the tan fill is the map's own color, not the page background —
+    // that's .map-section's background (now var(--paper), pure white).
     const dubaiMap = L.map('dubai-map', {
-      center: [25.2048, 55.2708],
-      zoom: 10,
-      minZoom: 9,
-      maxZoom: 14,
+      zoomControl: false,
       scrollWheelZoom: false,
-      zoomControl: true,
-      maxBounds: [[24.75, 54.75], [25.55, 55.75]],
-      maxBoundsViscosity: 0.85
+      minZoom: 2,
+      maxZoom: 9
     });
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(dubaiMap);
+    fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+      .then((r) => r.json())
+      .then((world) => {
+        L.geoJSON(world, {
+          style: { fillColor: '#E4C9A0', fillOpacity: 1, color: '#fff', weight: 0.75 }
+        }).addTo(dubaiMap);
+      });
 
-    const dubaiMarker = L.divIcon({
-      className: '',
-      html: '<span class="dubai-marker"></span>',
-      iconSize: [16, 16],
-      iconAnchor: [8, 8]
-    });
-
-    const venuePoints = [
-      {
-        name: 'Dubai Fintech District',
-        category: 'Business Park',
-        coordinates: [25.2147, 55.2822],
-        image: '../assets/creative-park-hero.avif',
-        description: 'Design-led workspaces, cafés and gallery-style venues for high-growth companies.'
-      },
-      {
-        name: 'Dubai Creative Park',
-        category: 'Cultural Landmark',
-        coordinates: [25.1392, 55.2348],
-        image: '../assets/fitness-day.png',
-        description: 'A 500,000 sq ft wellness and fitness destination balanced between built space and green landscape.'
-      },
-      {
-        name: 'V8 District',
-        category: 'Specialized Commercial Facilities',
-        coordinates: [25.1451, 55.2372],
-        image: '../assets/fitness-night.jpg',
-        description: 'Premium-grade space for high-end automotive businesses and their communities.'
-      },
-      {
-        name: 'Motor Garten',
-        category: 'Specialized Commercial Facilities',
-        coordinates: [25.1514, 55.2421],
-        image: '../assets/creative-park-hero.avif',
-        description: 'A purpose-built destination for automotive businesses, supported by full-service management.'
-      }
+    // real venues from gulfalts.com (Our Venues)
+    // ponytail: coordinates pulled from each venue's own "View Location"
+    // Google Maps link on gulfalts.com (not estimated).
+    const venues = [
+      { name: 'Dubai Fintech District', coordinates: [25.1368367, 55.251096] },
+      { name: 'Dubai Creative Park', coordinates: [25.1225674, 55.235491] },
+      { name: 'V8 District', coordinates: [25.1187927, 55.2307916] },
+      { name: 'Motor Garten', coordinates: [25.1305625, 55.2235625] }
     ];
 
-    const markerBounds = L.latLngBounds(venuePoints.map(({ coordinates }) => coordinates));
-
-    venuePoints.forEach((venue) => {
-      const popup = `
-        <article class="map-card">
-          <img class="map-card-image" src="${venue.image}" alt="">
-          <div class="map-card-body">
-            <div class="map-card-kicker">${venue.category}</div>
-            <h3>${venue.name}</h3>
-            <p>${venue.description}</p>
-          </div>
-        </article>
-      `;
-
-      const marker = L.marker(venue.coordinates, { icon: dubaiMarker })
-        .addTo(dubaiMap)
-        .bindPopup(popup, { maxWidth: 280, closeButton: true, autoPanPadding: [40, 40] });
-
-      let hoverCloseTimer;
-      const keepPopupOpen = () => window.clearTimeout(hoverCloseTimer);
-      const schedulePopupClose = () => {
-        hoverCloseTimer = window.setTimeout(() => marker.closePopup(), 180);
-      };
-
-      marker.on('mouseover', () => {
-        keepPopupOpen();
-        marker.openPopup();
-      });
-      marker.on('mouseout', schedulePopupClose);
-      marker.on('popupopen', () => {
-        const popupElement = marker.getPopup().getElement();
-        if (!popupElement || popupElement.dataset.hoverBound) return;
-        popupElement.dataset.hoverBound = 'true';
-        popupElement.addEventListener('mouseenter', keepPopupOpen);
-        popupElement.addEventListener('mouseleave', schedulePopupClose);
-      });
+    venues.forEach((venue) => {
+      L.circleMarker(venue.coordinates, {
+        radius: 7, fillColor: '#c94d3d', color: '#fff', weight: 2, fillOpacity: 1
+      })
+        .bindTooltip(venue.name, { direction: 'top', offset: [0, -8], className: 'city-label' })
+        .addTo(dubaiMap);
     });
 
-    dubaiMap.fitBounds(markerBounds, { padding: [72, 72], maxZoom: 13 });
+    // ponytail: the venues alone are ~3km apart — fitting to just them
+    // zooms in past the point where this low-poly world outline has any
+    // detail (back to the solid-blob problem). A UAE-sized box keeps it
+    // focused on Dubai (not the whole Gulf) while staying at a zoom where
+    // the coastline still reads as a coastline. Real pixel `padding` is
+    // what guarantees margin on every side instead of a flush crop.
+    const uaeRegion = L.latLngBounds([22.5, 51], [26.5, 57]);
+    const fitDubaiRegion = () => dubaiMap.fitBounds(uaeRegion, { padding: [30, 30], maxZoom: 9 });
+    fitDubaiRegion();
+    window.addEventListener('resize', fitDubaiRegion, { passive: true });
 
     const hero = document.querySelector('.hero');
     const heroPin = document.querySelector('.hero-pin');
+    const heroNav = document.querySelector('.hero-nav');
     const ourStrategies = document.querySelector('.our-strategies');
     const ourStrategyCards = [...document.querySelectorAll('[data-our-strategy-card]')];
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let framePending = false;
-    let strategyProgress = 0;
+
+    // ponytail: footer height is responsive (the giant wordmark scales with
+    // viewport width), so measure it live instead of hardcoding a spacer
+    // height that would drift out of sync on resize.
+    const siteFooter = document.querySelector('.site-footer');
+    const footerSpacer = document.querySelector('.footer-spacer');
+    if (siteFooter && footerSpacer) {
+      const syncFooterSpacer = () => { footerSpacer.style.height = `${siteFooter.offsetHeight}px`; };
+      if ('ResizeObserver' in window) {
+        new ResizeObserver(syncFooterSpacer).observe(siteFooter);
+      } else {
+        syncFooterSpacer();
+        window.addEventListener('resize', syncFooterSpacer, { passive: true });
+      }
+    }
+
+    // ponytail: cronicle.me's blur band is pinned to the viewport bottom and
+    // stays there through the whole scroll (checked their DOM: 6 stacked
+    // backdrop-filter layers, each masked to a band, at position:fixed —
+    // not tied to any one section). Same recipe here, but as a real fixed
+    // overlay instead of something anchored to a scroll position.
+    let viewportBlurEl = null;
+    if (!reducedMotion) {
+      viewportBlurEl = document.createElement('div');
+      viewportBlurEl.className = 'viewport-blur';
+      viewportBlurEl.setAttribute('aria-hidden', 'true');
+      [0.5, 1, 2, 4, 8, 12].forEach((blur, i, arr) => {
+        const layer = document.createElement('div');
+        const start = (i / arr.length) * 100;
+        const mid = ((i + 1) / arr.length) * 100;
+        layer.style.cssText = `position:absolute;inset:0;backdrop-filter:blur(${blur}px);-webkit-backdrop-filter:blur(${blur}px);mask-image:linear-gradient(to bottom, transparent ${start}%, black ${mid}%);-webkit-mask-image:linear-gradient(to bottom, transparent ${start}%, black ${mid}%);`;
+        viewportBlurEl.appendChild(layer);
+      });
+      document.body.appendChild(viewportBlurEl);
+
+      // ponytail: the blur is a fixed overlay so it's always physically at
+      // the bottom of the screen — including once the footer has scrolled
+      // fully into view, where it just smears the copyright line for no
+      // reason. Fade it out once we're at (or near) the end of the page.
+      const updateViewportBlur = () => {
+        const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 60;
+        viewportBlurEl.classList.toggle('is-hidden', atBottom);
+      };
+      updateViewportBlur();
+      document.addEventListener('scroll', updateViewportBlur, { passive: true });
+      window.addEventListener('resize', updateViewportBlur, { passive: true });
+    }
+
+    // ponytail: no real backend — swap in a plain confirmation instead of
+    // pretending the email actually went somewhere.
+    const footerSignup = document.querySelector('[data-footer-signup]');
+    if (footerSignup) {
+      footerSignup.addEventListener('submit', (e) => {
+        e.preventDefault();
+        footerSignup.innerHTML = '<p style="margin:0;font-size:15px;">Thanks — you\'re on the list.</p>';
+      });
+    }
+
+    // ponytail: Lenis eases the native scroll itself (still real window.scrollY,
+    // real 'scroll' events) — the existing getBoundingClientRect()-driven
+    // scroll-jack sections below need no changes to keep working with it.
+    let lenis = null;
+    if (window.Lenis && !reducedMotion) {
+      lenis = new Lenis({ duration: 0.8, smoothWheel: true });
+      const raf = (time) => {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+      };
+      requestAnimationFrame(raf);
+    }
 
     const approachRows = [...document.querySelectorAll('[data-approach-index]')];
     const approachCopy = document.querySelector('.approach-copy');
@@ -1113,23 +1171,94 @@
       return clamp(-element.getBoundingClientRect().top / range);
     };
 
+    // ponytail: parse each metric's own printed text ("1.06M", "AED 2.13B",
+    // "1,289") instead of hand-duplicating targets in data-* attributes —
+    // one regex splits prefix/number/suffix, the number is what animates.
+    const metricsSection = document.querySelector('.metrics');
+    const metricValueEls = [...document.querySelectorAll('.metric-value')];
+    const animateMetric = (el) => {
+      const match = el.textContent.trim().match(/^([^\d]*)([\d,.]+)([^\d]*)$/);
+      if (!match) return;
+      const [, prefix, core, suffix] = match;
+      const decimals = core.includes('.') ? core.split('.')[1].length : 0;
+      const useThousands = core.includes(',');
+      const target = parseFloat(core.replace(/,/g, ''));
+      const duration = 1300;
+      const start = performance.now();
+      const tick = (now) => {
+        const t = smoothstep(clamp((now - start) / duration));
+        const value = target * t;
+        const formatted = useThousands
+          ? Math.round(value).toLocaleString('en-US')
+          : value.toFixed(decimals);
+        el.textContent = `${prefix}${formatted}${suffix}`;
+        if (t < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    };
+
+    // ponytail: wrap each word in its own span so scroll progress can drive
+    // per-word opacity — a plain "fill on scroll" reveal, no extra library.
+    const fillText = document.querySelector('.fill-text');
+    const fillWords = [...document.querySelectorAll('.fill-text p')].flatMap((p) => {
+      const words = p.textContent.trim().split(/\s+/);
+      p.innerHTML = words.map((w) => `<span class="fill-word">${w}</span>`).join(' ');
+      return [...p.querySelectorAll('.fill-word')];
+    });
+
+    if (reducedMotion) {
+      fillWords.forEach((w) => { w.style.opacity = 1; });
+    }
+
+    const renderFillText = () => {
+      if (!fillText || !fillWords.length || reducedMotion) return;
+      const rect = fillText.getBoundingClientRect();
+      const progress = clamp((window.innerHeight * 0.85 - rect.top) / (rect.height + window.innerHeight * 0.4));
+      const band = 1 / fillWords.length;
+      fillWords.forEach((word, index) => {
+        const local = clamp((progress - index * band) / band);
+        word.style.opacity = (0.25 + local * 0.75).toFixed(3);
+      });
+    };
+
+    if (metricsSection && metricValueEls.length && !reducedMotion) {
+      const metricsObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          metricValueEls.forEach(animateMetric);
+          metricsObserver.disconnect();
+        });
+      }, { threshold: 0.4 });
+      metricsObserver.observe(metricsSection);
+    }
+
     const renderHero = () => {
+      // ponytail: nav condense (ondo.finance-style) is a plain scroll
+      // threshold, independent of the hero's own scroll-jack timeline, so
+      // it stays a pinned pill for the rest of the page, not just the hero.
+      if (heroNav) heroNav.classList.toggle('is-condensed', window.scrollY > 40);
+
       if (!hero || !heroPin || reducedMotion) return;
 
       const heroProgress = sectionProgress(hero);
-      const cropProgress = clamp(heroProgress / 0.6);
-      const lightProgress = clamp((heroProgress - 0.55) / 0.45);
-      heroPin.style.setProperty('--hero-crop', cropProgress.toFixed(4));
-      heroPin.style.setProperty('--hero-light', lightProgress.toFixed(4));
+      // ponytail: crop used to finish at 0.6 of the scroll-track, leaving a
+      // long pinned "dead" tail before the about section could appear.
+      // 0.92 lets the shrink use nearly the whole track instead.
+      const cropProgress = clamp(heroProgress / 0.92);
+      const lightProgress = cropProgress;
+      // ponytail: set on :root, not heroPin — hero-nav now lives outside
+      // .hero-pin (see markup), so it needs these vars to cascade to it too.
+      document.documentElement.style.setProperty('--hero-crop', cropProgress.toFixed(4));
+      document.documentElement.style.setProperty('--hero-light', lightProgress.toFixed(4));
     };
 
     const renderOurStrategies = () => {
       if (!ourStrategies || !ourStrategyCards.length || reducedMotion) return;
 
-      const targetProgress = sectionProgress(ourStrategies);
-      strategyProgress += (targetProgress - strategyProgress) * 0.14;
-      if (Math.abs(targetProgress - strategyProgress) < 0.0005) strategyProgress = targetProgress;
-      const storyProgress = strategyProgress;
+      // ponytail: no manual lerp here anymore — Lenis already eases the
+      // underlying scroll position, so a second lerp on top of that just
+      // stacked lag on lag (the "berat" sticky-section feel).
+      const storyProgress = sectionProgress(ourStrategies);
       const cardTravel = 1 / ourStrategyCards.length;
 
       ourStrategyCards.forEach((card, index) => {
@@ -1140,24 +1269,26 @@
         card.style.zIndex = String(index + 1);
         card.style.transform = `translate3d(-50%, calc(-50% + ${translateY}%), 0)`;
       });
-
-      if (Math.abs(targetProgress - strategyProgress) > 0.0005) window.requestAnimationFrame(requestScrollRender);
     };
 
-    const requestScrollRender = () => {
-      if (framePending) return;
-      framePending = true;
-      window.requestAnimationFrame(() => {
-        framePending = false;
-        renderHero();
-        renderOurStrategies();
-      });
+    const renderScroll = () => {
+      renderHero();
+      renderOurStrategies();
+      renderFillText();
     };
 
-    if (!reducedMotion && (hero || ourStrategyCards.length)) {
-      document.addEventListener('scroll', requestScrollRender, { passive: true });
-      window.addEventListener('resize', requestScrollRender, { passive: true });
-      requestScrollRender();
+    if (!reducedMotion && (hero || ourStrategyCards.length || fillWords.length)) {
+      // ponytail: when Lenis is running, hook its own scroll tick directly.
+      // Going through a *second* rAF via a native 'scroll' listener added a
+      // full extra frame of lag on top of Lenis's own easing — that's what
+      // made sticky sections feel heavy.
+      if (lenis) {
+        lenis.on('scroll', renderScroll);
+      } else {
+        document.addEventListener('scroll', renderScroll, { passive: true });
+      }
+      window.addEventListener('resize', renderScroll, { passive: true });
+      renderScroll();
     }
   </script>
 
@@ -1193,7 +1324,7 @@
 
         const box = trail.getBoundingClientRect();
         const img = pool[index % pool.length];
-        const tilt = (index % 2 ? 1 : -1) * (4 + (index % 3) * 2);
+        const tilt = 0;
         const base = `translate3d(${event.clientX - box.left - img.offsetWidth / 2}px, ${event.clientY - box.top - img.offsetHeight / 2}px, 0) rotate(${tilt}deg)`;
         index += 1;
 
