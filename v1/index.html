@@ -138,6 +138,10 @@
       opacity: calc(1 - var(--hero-light, 0));
     }
 
+    /* ondo interaction, per the reference file: one state toggle at 40px.
+       Full-width transparent bar over the hero contracts into a centred
+       glass island — same 0.55s cubic-bezier(.32,.72,0,1) on every
+       morphing property so position/width/surface move as one piece. */
     .hero-nav {
       position: fixed;
       inset: 20px 40px auto;
@@ -146,31 +150,48 @@
       align-items: center;
       justify-content: space-between;
       gap: 28px;
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: 0 0 0 rgba(0, 0, 0, 0);
       color: color-mix(in srgb, #fff, var(--ink) calc(var(--hero-light, 0) * 100%));
-      transition: top 320ms cubic-bezier(.22, .61, .36, 1), width 320ms cubic-bezier(.22, .61, .36, 1), padding 320ms ease, background 320ms ease, border-radius 320ms ease, box-shadow 320ms ease;
+      transition:
+        top 0.55s cubic-bezier(.32, .72, 0, 1),
+        left 0.55s cubic-bezier(.32, .72, 0, 1),
+        right 0.55s cubic-bezier(.32, .72, 0, 1),
+        width 0.55s cubic-bezier(.32, .72, 0, 1),
+        padding 0.55s cubic-bezier(.32, .72, 0, 1),
+        background 0.55s cubic-bezier(.32, .72, 0, 1),
+        border-radius 0.55s cubic-bezier(.32, .72, 0, 1),
+        box-shadow 0.55s cubic-bezier(.32, .72, 0, 1),
+        color 0.55s cubic-bezier(.32, .72, 0, 1),
+        backdrop-filter 0.55s cubic-bezier(.32, .72, 0, 1);
     }
 
-    /* ondo.finance-style condense: full-width transparent bar shrinks into
-       a fixed, centered, dark rounded pill once the page scrolls. Layout
-       (brand / links / cta) stays identical to the default state above —
-       only position, size and background change. */
+    /* dark pill (kept from the earlier design) — only the motion comes from
+       the reference: same contraction, same 0.55s curve on every property. */
     .hero-nav.is-condensed {
-      position: fixed;
-      inset: 16px auto auto 50%;
+      inset: 12px auto auto 50%;
       transform: translateX(-50%);
-      width: min(920px, calc(100% - 48px));
-      padding: 8px 14px 8px 22px;
-      background: #0b0b0b;
+      width: min(920px, calc(100% - 32px));
+      padding: 10px 12px 10px 28px;
+      border-radius: 16px;
+      background: rgba(11, 11, 11, 0.92);
+      backdrop-filter: blur(24px) saturate(150%);
+      -webkit-backdrop-filter: blur(24px) saturate(150%);
       color: #fff;
-      border-radius: 12px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+      box-shadow:
+        rgba(0, 0, 0, 0.22) 0 9px 60px,
+        rgba(0, 0, 0, 0.14) 0 2px 17.9px;
     }
 
     .hero-nav.is-condensed .brand img { width: 84px; }
+    /* dark pill, so the white logo stays */
+    .hero-nav.is-condensed .brand .logo-light { opacity: 1; }
     .hero-nav.is-condensed .brand .logo-dark { opacity: 0; }
 
     .brand { position: relative; display: inline-flex; width: max-content; flex: none; }
-    .brand img { width: 104px; height: auto; }
+    .brand img { width: 104px; height: auto; transition: opacity 0.55s cubic-bezier(.32, .72, 0, 1), width 0.55s cubic-bezier(.32, .72, 0, 1); }
     .brand .logo-dark { position: absolute; inset: 0 auto auto 0; opacity: var(--hero-light, 0); }
 
     .nav-links {
@@ -187,17 +208,19 @@
 
     .nav-cta {
       flex: none;
-      padding: 8px 16px;
+      padding: 10px 16px;
       background: #fff;
       color: #0b0b0b;
       border-radius: 8px;
       font-size: 13px;
       text-decoration: none;
       white-space: nowrap;
-      transition: opacity 180ms ease;
+      transition: background 0.55s cubic-bezier(.32, .72, 0, 1), color 0.55s cubic-bezier(.32, .72, 0, 1), transform 200ms ease;
     }
 
-    .nav-cta:hover { opacity: 0.8; }
+    /* pill is dark, so the CTA stays the light chip that reads against it */
+    .hero-nav.is-condensed .nav-cta { background: #fff; color: #0b0b0b; }
+    .nav-cta:hover { transform: translateY(-1px); }
 
     .hero-copy {
       position: absolute;
@@ -213,8 +236,6 @@
       color: color-mix(in srgb, #fff, var(--ink) calc(var(--hero-light, 0) * 100%));
       opacity: calc(1 - var(--hero-crop, 0) * 1.3);
     }
-
-    .hero-copy .eyebrow { margin-bottom: 22px; color: color-mix(in srgb, rgba(255, 255, 255, 0.86), var(--ink) calc(var(--hero-light, 0) * 100%)); }
 
     h1, h2, h3, h4, p { margin-top: 0; }
     h1, h2, h3, h4 { font-weight: 400; }
@@ -233,25 +254,7 @@
       white-space: nowrap;
     }
 
-    h1 span {
-      display: inline-block;
-      will-change: transform;
-    }
-
-    h1 span:first-child { transform: translateX(calc(-1 * (50vh * var(--hero-end-scale, 0.44) + 45px) * var(--hero-light, 0))); }
-    h1 span:last-child { transform: translateX(calc((50vh * var(--hero-end-scale, 0.44) + 45px) * var(--hero-light, 0))); }
-
-    .hero-copy .eyebrow,
     .hero-copy h1 { transition: none; }
-
-    .hero-copy .eyebrow { font-size: 12px; letter-spacing: 0.08em; }
-    .hero-copy .eyebrow { transform: translateY(calc(-10px * var(--hero-light, 0))); }
-
-    .hero-copy .eyebrow::after {
-      content: "";
-      display: block;
-      height: 0;
-    }
 
     .hero-scroll-cue {
       position: absolute;
@@ -316,10 +319,47 @@
     .scale-grid-item { position: relative; overflow: hidden; background: #111; aspect-ratio: 3/2; border-radius: 8px }
     .scale-grid-item img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block }
 
+    /* ponytail: left-centred, and hidden until the grid has finished zooming
+       to fullscreen — it only earns the overlay once the image is the whole
+       frame, otherwise it sits on top of the small grid tiles. */
+    .immersive-copy {
+      position: absolute;
+      inset: 0 auto 0 0;
+      z-index: 3;
+      display: grid;
+      align-content: center;
+      justify-items: start;
+      width: min(620px, 46vw);
+      padding: 0 0 0 clamp(24px, 5vw, 80px);
+      text-align: left;
+      color: #fff;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 600ms ease;
+      text-shadow: 0 2px 30px rgba(0, 0, 0, 0.45);
+    }
+    .immersive-copy.is-visible { opacity: 1; }
+    .immersive-copy .eyebrow { margin-bottom: 20px; color: rgba(255, 255, 255, 0.75); }
+    .immersive-steps { position: relative; display: grid; width: 100%; }
+    .immersive-step {
+      grid-area: 1 / 1;
+      opacity: 0;
+      transform: translateY(18px);
+      /* ponytail: long, soft cross-fade — the swap should feel like a settle,
+         not a cut. Paired with more scroll per step in .scale-grid's height. */
+      transition: opacity 900ms ease, transform 900ms cubic-bezier(.16, 1, .3, 1);
+    }
+    .immersive-step.is-active { opacity: 1; transform: none; }
+    .immersive-step h2 { margin: 0 0 12px; font-size: clamp(26px, 3vw, 40px); font-weight: 400; letter-spacing: -0.03em; line-height: 1.1; }
+    .immersive-step p { margin: 0; color: rgba(255, 255, 255, 0.82); font-size: clamp(15px, 1.3vw, 18px); line-height: 1.5; }
+
     @media (min-width: 650px) {
       .scale-grid {
         font-size: min(0.5625vw, 0.88vh);
-        height: 400vh;
+        /* ponytail: the ~21% of scroll left after the zoom completes is what
+           the three copy steps share — 760vh gives each step ~53vh, so they
+           hold long enough to read instead of flicking past. */
+        height: 760vh;
         padding: 0;
       }
       .scale-grid-wrap { position: sticky; top: 0; height: 100svh }
@@ -359,8 +399,8 @@
 
     .project-card { display: block; text-decoration: none; }
     .project-card figure { margin: 0 0 12px; overflow: hidden; background: #d8d8d5; }
-    .project-card img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.76); transition: transform 700ms cubic-bezier(.16, 1, .3, 1); }
-    .project-card:hover img { transform: scale(1.035); }
+    .project-card img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.76); }
+    .project-card-text { position: relative; }
     .project-card h3 { margin-bottom: 3px; font-size: 16px; font-weight: 400; }
     .project-card p { margin-bottom: 0; color: #898985; font-family: "DM Sans", Arial, sans-serif; font-size: 14px; }
     .project-card.one { grid-column: 1 / 5; grid-row: 1; margin-top: 0; }
@@ -536,10 +576,56 @@
     .map-heading .eyebrow { font-size: 11px; }
     .map-heading h2 { max-width: 1000px; margin: 0 auto 18px; font-size: clamp(40px, 5.6vw, 88px); font-weight: 400; letter-spacing: -0.04em; line-height: 0.9; text-wrap: balance; }
     .map-heading p { max-width: 46ch; margin: 0 auto; color: var(--muted); font-size: clamp(15px, 1.3vw, 18px); line-height: 1.5; }
-    .map-wrap { position: relative; width: 100%; aspect-ratio: 16 / 8; min-height: 0; margin: 0 auto; overflow: hidden; }
-    #dubai-map { width: 100%; height: 100%; background: #fff; }
+    /* ponytail: narrower + taller than the old 5:3 letterbox — the 4 venues
+       sit in a tight cluster, so height is what lets them (and their label
+       pills) all fit on screen at once. */
+    .map-wrap { position: relative; width: min(900px, 100%); aspect-ratio: 1 / 1; min-height: 0; margin: 0 auto; overflow: visible; }
+    #dubai-map { width: 100%; height: 100%; background: #fff; border-radius: 16px; }
     .leaflet-control-attribution { background: rgba(255, 255, 255, 0.82) !important; }
-    .city-label { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 4px 10px; font-family: "DM Sans", Arial, sans-serif; font-size: 13px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); }
+
+    /* venue pin: circular thumbnail + label pill, popup card on hover */
+    .venue-marker { position: relative; }
+    .venue-pin {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: #d8d8d5;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    }
+    .venue-pin img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .venue-marker-label {
+      position: absolute;
+      top: 50%;
+      left: calc(100% + 10px);
+      transform: translateY(-50%);
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #0b0b0b;
+      color: #fff;
+      font-family: "DM Sans", Arial, sans-serif;
+      font-size: 12px;
+      line-height: 1.2;
+      white-space: nowrap;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ponytail: Leaflet's default .leaflet-popup margin-bottom:20px is applied
+       outside the border box, so it stacked on top of the popup offset and
+       floated the card well clear of the pin. Zero it and let the offset
+       alone control the gap. */
+    .venue-popup { margin-bottom: 0; }
+    .venue-popup .leaflet-popup-content-wrapper { padding: 0; border-radius: 14px; overflow: hidden; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22); }
+    .venue-popup .leaflet-popup-content { margin: 0; width: 232px !important; }
+    .venue-popup .leaflet-popup-tip { background: #fff; }
+    .venue-card img { display: block; width: 100%; height: 132px; object-fit: cover; }
+    .venue-card-body { padding: 16px; }
+    .venue-card h4 { margin: 0 0 6px; font-size: 18px; font-weight: 500; letter-spacing: -0.02em; }
+    .venue-card p { margin: 0 0 14px; color: var(--muted); font-family: "DM Sans", Arial, sans-serif; font-size: 11px; letter-spacing: 0.06em; line-height: 1.35; text-transform: uppercase; }
+    .venue-card a { display: block; padding: 11px 14px; border-radius: 8px; background: var(--ink); color: #fff; font-size: 13px; font-weight: 500; text-align: center; text-decoration: none; transition: opacity 180ms ease; }
+    .venue-card a:hover { opacity: 0.85; }
 
     .cta {
       position: relative;
@@ -635,9 +721,7 @@
       .nav-links { display: none; }
       .nav-cta { padding: 8px 16px; font-size: 12px; }
       .hero-copy { left: 28px; right: 28px; bottom: 64px; }
-      .hero-copy .eyebrow { margin-bottom: 18px; }
-      h1 { max-width: 10ch; flex-direction: column; gap: calc((60vh * 0.6 + 24px) * var(--hero-light, 0) * 2); font-size: clamp(40px, 11vw, 64px); line-height: 0.94; white-space: normal; }
-      h1 span:first-child, h1 span:last-child { transform: none; }
+      h1 { max-width: 10ch; flex-direction: column; gap: 24px; font-size: clamp(40px, 11vw, 64px); line-height: 0.94; white-space: normal; }
       .hero-scroll-cue { right: auto; bottom: 6vh; }
       .about-copy { padding: 0 20px 60px; }
       .fill-text { font-size: clamp(18px, 5vw, 24px); }
@@ -679,7 +763,7 @@
       .approach-row { padding: 9px 14px; }
       .map-section { height: auto; min-height: 0; padding: 72px 20px 64px; display: block; }
       .map-heading { margin-bottom: 32px; }
-      .map-wrap { width: 100%; height: auto; aspect-ratio: 5 / 3; min-height: 0; }
+      .map-wrap { width: 100%; height: auto; aspect-ratio: 3 / 4; min-height: 0; }
       .footer-top { grid-template-columns: 1fr 1fr; gap: 34px 24px; }
       .footer-newsletter { grid-column: 1 / 3; margin-bottom: 10px; }
       .footer-signup { max-width: 100%; }
@@ -701,12 +785,12 @@
       <img class="logo-dark" src="../assets/gulfalts-black.svg" alt="">
     </a>
     <nav class="nav-links" aria-label="Primary">
-      <a href="#about">Explore</a>
+      <a href="#about">About</a>
+      <a href="#metrics">At a Glance</a>
       <a href="#portfolio">Projects</a>
+      <a href="#our-strategies">Strategies</a>
       <a href="#what-we-do">What We Do</a>
-      <a href="#metrics">Sustainability</a>
-      <a href="#dubai">Digital Future</a>
-      <a href="#contact">Careers</a>
+      <a href="#dubai">Location</a>
     </nav>
     <a class="nav-cta" href="mailto:info@gulfalts.com?subject=Dubai%20Creative%20Park%20enquiry">Get in Touch</a>
   </header>
@@ -718,7 +802,6 @@
         </div>
 
         <div class="hero-copy">
-          <p class="eyebrow">Dubai Creative Park</p>
           <h1 id="hero-title"><span>Where better business</span><span>meets better living.</span></h1>
         </div>
         <p class="hero-scroll-cue" aria-hidden="true">Scroll to explore ↓</p>
@@ -772,6 +855,28 @@
             <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park interior at night"></div>
             <div class="scale-grid-item"><img src="../assets/fitness-day.png" alt="Creative Park fitness space"></div>
           </div>
+
+          <!-- ponytail: copy scaffold for the immersive scroll — one step is
+               visible at a time, swapped by scroll progress through the
+               section. Real content/animation comes later; this is the
+               structure it will hang off. -->
+          <div class="immersive-copy" data-immersive-copy>
+            <p class="eyebrow">Dubai Creative Park</p>
+            <div class="immersive-steps">
+              <div class="immersive-step is-active">
+                <h2>Dubai's first 500,000 sq ft wellness destination.</h2>
+                <p>Evenly balanced between built environment and green landscape.</p>
+              </div>
+              <div class="immersive-step">
+                <h2>Designed around walkability and nature.</h2>
+                <p>Sports, fitness, wellness and curated F&amp;B in a single integrated venue.</p>
+              </div>
+              <div class="immersive-step">
+                <h2>A category-defining addition to Dubai's commercial landscape.</h2>
+                <p>Built and managed end to end by Gulf Alternatives.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </div>
@@ -784,25 +889,33 @@
       </div>
 
       <div class="project-grid">
-        <a class="project-card one" href="#hero">
-          <figure><img src="../assets/fitness-day.png" alt="Dubai Creative Park fitness space"></figure>
-          <h3>Dubai Creative Park</h3>
-          <p>Wellness and fitness destination</p>
+        <a class="project-card one" href="https://www.gulfalts.com/venue/dubai-creative-park" target="_blank" rel="noreferrer">
+          <figure><img src="../assets/creative-park.avif" alt="Dubai Creative Park, a wellness and fitness destination"></figure>
+          <div class="project-card-text">
+            <h3>Dubai Creative Park</h3>
+            <p>Cultural landmark</p>
+          </div>
         </a>
-        <a class="project-card two" href="https://www.gulfalts.com/" target="_blank" rel="noreferrer">
-          <figure><img src="../assets/creative-park-hero.avif" alt="Dubai Fintech District architectural environment"></figure>
-          <h3>Dubai Fintech District</h3>
-          <p>Business park, Dubai</p>
+        <a class="project-card two" href="https://www.gulfalts.com/venue/fintech-district" target="_blank" rel="noreferrer">
+          <figure><img src="../assets/fintech-district.avif" alt="Dubai Fintech District business park"></figure>
+          <div class="project-card-text">
+            <h3>Dubai Fintech District</h3>
+            <p>Business park</p>
+          </div>
         </a>
-        <a class="project-card three" href="https://www.gulfalts.com/" target="_blank" rel="noreferrer">
-          <figure><img src="../assets/fitness-night.jpg" alt="V8 District commercial interior placeholder"></figure>
-          <h3>V8 District</h3>
-          <p>Specialized commercial facilities</p>
+        <a class="project-card three" href="https://www.gulfalts.com/venue/v8-district" target="_blank" rel="noreferrer">
+          <figure><img src="../assets/v8-district.avif" alt="V8 District automotive commercial facility"></figure>
+          <div class="project-card-text">
+            <h3>V8 District</h3>
+            <p>Specialized commercial facilities</p>
+          </div>
         </a>
-        <a class="project-card four" href="#hero">
-          <figure><img src="../assets/creative-park-hero.avif" alt="Commercial destination rendering"></figure>
-          <h3>Motor Garten</h3>
-          <p>Specialized commercial facilities</p>
+        <a class="project-card four" href="https://www.gulfalts.com/venue/motor-garten" target="_blank" rel="noreferrer">
+          <figure><img src="../assets/motor-garten.avif" alt="Motor Garten automotive commercial facility"></figure>
+          <div class="project-card-text">
+            <h3>Motor Garten</h3>
+            <p>Specialized commercial facilities</p>
+          </div>
         </a>
       </div>
     </section>
@@ -964,49 +1077,103 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
   <script>
-    // ponytail: the tan fill is the map's own color, not the page background —
-    // that's .map-section's background (now var(--paper), pure white).
+    // ponytail: plain OSM tiles — CARTO's basemaps now stamp "API key
+    // required" on anonymous requests. OSM needs no key and no signup.
     const dubaiMap = L.map('dubai-map', {
       zoomControl: false,
       scrollWheelZoom: false,
       minZoom: 2,
-      maxZoom: 9
+      maxZoom: 18
     });
 
-    fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
-      .then((r) => r.json())
-      .then((world) => {
-        L.geoJSON(world, {
-          style: { fillColor: '#E4C9A0', fillOpacity: 1, color: '#fff', weight: 0.75 }
-        }).addTo(dubaiMap);
-      });
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(dubaiMap);
 
     // real venues from gulfalts.com (Our Venues)
     // ponytail: coordinates pulled from each venue's own "View Location"
     // Google Maps link on gulfalts.com (not estimated).
     const venues = [
-      { name: 'Dubai Fintech District', coordinates: [25.1368367, 55.251096] },
-      { name: 'Dubai Creative Park', coordinates: [25.1225674, 55.235491] },
-      { name: 'V8 District', coordinates: [25.1187927, 55.2307916] },
-      { name: 'Motor Garten', coordinates: [25.1305625, 55.2235625] }
+      {
+        name: 'Dubai Fintech District',
+        category: 'Business Park',
+        coordinates: [25.1368367, 55.251096],
+        image: '../assets/fintech-district.avif',
+        directions: 'https://maps.app.goo.gl/1Z53oRco3kVDjSsj9'
+      },
+      {
+        name: 'Dubai Creative Park',
+        category: 'Cultural Landmark',
+        coordinates: [25.1225674, 55.235491],
+        image: '../assets/creative-park.avif',
+        directions: 'https://maps.app.goo.gl/z4Asg5HY1MbpcqpV9'
+      },
+      {
+        name: 'V8 District',
+        category: 'Specialized Commercial Facilities',
+        coordinates: [25.1187927, 55.2307916],
+        image: '../assets/v8-district.avif',
+        directions: 'https://maps.app.goo.gl/oC7rk9PPXYkT8cpy8'
+      },
+      {
+        name: 'Motor Garten',
+        category: 'Specialized Commercial Facilities',
+        coordinates: [25.1305625, 55.2235625],
+        image: '../assets/motor-garten.avif',
+        directions: 'https://maps.app.goo.gl/SaLQUBgw7Z71kPjbA'
+      }
     ];
 
+    const escapeHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
     venues.forEach((venue) => {
-      L.circleMarker(venue.coordinates, {
-        radius: 7, fillColor: '#c94d3d', color: '#fff', weight: 2, fillOpacity: 1
-      })
-        .bindTooltip(venue.name, { direction: 'top', offset: [0, -8], className: 'city-label' })
-        .addTo(dubaiMap);
+      const marker = L.marker(venue.coordinates, {
+        icon: L.divIcon({
+          className: 'venue-marker',
+          iconSize: [56, 56],
+          iconAnchor: [28, 28],
+          html: `<span class="venue-pin"><img src="${venue.image}" alt=""></span><span class="venue-marker-label">${escapeHtml(venue.name)}</span>`
+        })
+      }).addTo(dubaiMap);
+
+      marker.bindPopup(
+        `<div class="venue-card">
+           <img src="${venue.image}" alt="${escapeHtml(venue.name)}">
+           <div class="venue-card-body">
+             <h4>${escapeHtml(venue.name)}</h4>
+             <p>${escapeHtml(venue.category)}</p>
+             <a href="${venue.directions}" target="_blank" rel="noreferrer">Get Directions</a>
+           </div>
+         </div>`,
+        { className: 'venue-popup', closeButton: false, offset: [0, -32], autoPan: false, maxWidth: 232 }
+      );
+
+      // ponytail: hover-to-open, but the card has a real link in it — so the
+      // close is delayed and cancelled if the pointer lands on the popup,
+      // otherwise the card vanishes before it can be clicked.
+      let closeTimer;
+      const cancelClose = () => clearTimeout(closeTimer);
+      const scheduleClose = () => {
+        clearTimeout(closeTimer);
+        closeTimer = setTimeout(() => marker.closePopup(), 220);
+      };
+
+      marker.on('mouseover', () => { cancelClose(); marker.openPopup(); });
+      marker.on('mouseout', scheduleClose);
+      marker.on('popupopen', (e) => {
+        const el = e.popup.getElement();
+        if (!el) return;
+        el.addEventListener('mouseenter', cancelClose);
+        el.addEventListener('mouseleave', scheduleClose);
+      });
     });
 
-    // ponytail: the venues alone are ~3km apart — fitting to just them
-    // zooms in past the point where this low-poly world outline has any
-    // detail (back to the solid-blob problem). A UAE-sized box keeps it
-    // focused on Dubai (not the whole Gulf) while staying at a zoom where
-    // the coastline still reads as a coastline. Real pixel `padding` is
-    // what guarantees margin on every side instead of a flush crop.
-    const uaeRegion = L.latLngBounds([22.5, 51], [26.5, 57]);
-    const fitDubaiRegion = () => dubaiMap.fitBounds(uaeRegion, { padding: [30, 30], maxZoom: 9 });
+    // ponytail: generous padding because each pin carries a label pill ~200px
+    // to its right and a popup above it — fitting to the raw points alone
+    // would push those off the edge.
+    const venueBounds = L.latLngBounds(venues.map((v) => v.coordinates));
+    const fitDubaiRegion = () => dubaiMap.fitBounds(venueBounds, { paddingTopLeft: [70, 110], paddingBottomRight: [170, 70], maxZoom: 13 });
     fitDubaiRegion();
     window.addEventListener('resize', fitDubaiRegion, { passive: true });
 
@@ -1086,6 +1253,26 @@
       };
       requestAnimationFrame(raf);
     }
+
+    // ponytail: in-page links jumped instantly because scroll-behavior is
+    // 'auto' (it has to be — smooth fights Lenis). Route them through
+    // lenis.scrollTo so they animate, with a native smooth fallback when
+    // Lenis is off (reduced motion falls through to an instant jump).
+    document.querySelectorAll('a[href^="#"]').forEach((link) => {
+      link.addEventListener('click', (e) => {
+        const id = link.getAttribute('href');
+        if (!id || id === '#') return;
+        const target = document.querySelector(id);
+        if (!target) return;
+        e.preventDefault();
+        if (lenis) {
+          lenis.scrollTo(target, { duration: 1.4, easing: (t) => 1 - Math.pow(1 - t, 3) });
+        } else {
+          target.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
+        }
+        history.replaceState(null, '', id);
+      });
+    });
 
     const approachRows = [...document.querySelectorAll('[data-approach-index]')];
     const approachCopy = document.querySelector('.approach-copy');
@@ -1244,7 +1431,10 @@
       // ponytail: crop used to finish at 0.6 of the scroll-track, leaving a
       // long pinned "dead" tail before the about section could appear.
       // 0.92 lets the shrink use nearly the whole track instead.
-      const cropProgress = clamp(heroProgress / 0.92);
+      // smoothstep so the shrink eases in and out of the scroll instead of
+      // tracking it linearly — that hard start/stop is what read as abrupt
+      // going from hero into about.
+      const cropProgress = smoothstep(clamp(heroProgress / 0.92));
       const lightProgress = cropProgress;
       // ponytail: set on :root, not heroPin — hero-nav now lives outside
       // .hero-pin (see markup), so it needs these vars to cascade to it too.
@@ -1374,6 +1564,46 @@
         measure(); kick();
       }
     });
+  </script>
+
+  <!-- immersive-scroll copy: swaps step by step on scroll through the section -->
+  <script>
+    (() => {
+      // ponytail: kept out of the verbatim scale-grid script above so that
+      // stays a drop-in component. Same progress maths, own listener.
+      const section = document.querySelector('.immersive');
+      const copy = document.querySelector('[data-immersive-copy]');
+      const steps = [...document.querySelectorAll('[data-immersive-copy] .immersive-step')];
+      if (!section || !copy || !steps.length) return;
+
+      // ponytail: the scale-grid finishes its zoom at HOLD_IN + RUN (.26+.53)
+      // of the section's scroll. Copy stays hidden until then — before that
+      // the frame is still a grid of small tiles, not a full-bleed image —
+      // and the steps split whatever scroll is left after it.
+      const ZOOM_END = 0.79;
+
+      let pending = false;
+      const render = () => {
+        pending = false;
+        const box = section.getBoundingClientRect();
+        const range = section.offsetHeight - innerHeight;
+        const progress = range > 0 ? Math.min(1, Math.max(0, -box.top / range)) : 0;
+
+        const entered = progress >= ZOOM_END;
+        copy.classList.toggle('is-visible', entered);
+        if (!entered) return;
+
+        const local = Math.min(0.999, (progress - ZOOM_END) / (1 - ZOOM_END));
+        const active = Math.floor(local * steps.length);
+        steps.forEach((step, i) => step.classList.toggle('is-active', i === active));
+      };
+
+      addEventListener('scroll', () => {
+        if (!pending) { pending = true; requestAnimationFrame(render); }
+      }, { passive: true });
+      addEventListener('resize', render, { passive: true });
+      render();
+    })();
   </script>
 </body>
 </html>
