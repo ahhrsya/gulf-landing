@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hero full-bleed → card (Ondo-style)</title>
+<style>
+  :root{
+    --end-scale:.44;      /* ukuran kartu di akhir (0.44 x tinggi layar) */
+    --radius:78px;        /* radius pre-scale; on-screen akhir = 78 * .44 ≈ 34px */
+    --gap:45px;           /* jarak teks ke sisi kartu */
+    --dark:#0b0b0b;       /* backdrop saat masih full-bleed */
+    --light:#fff;         /* backdrop saat sudah jadi kartu */
+    --ink:#0a0a0a;
+    --p:0;                /* progress 0→1, ditulis JS */
+
+    /* dua tahap: crop dulu (pa), baru mengecil (pb) — persis urutan Ondo */
+    --pa: clamp(0, calc(var(--p) / .6), 1);
+    --pb: clamp(0, calc((var(--p) - .55) / .45), 1);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Helvetica Neue",Inter,system-ui,sans-serif;color:var(--ink);background:var(--light)}
+
+  /* pin: wrapper 250vh, isi sticky 100vh → 150vh scroll buat animasi */
+  .hero{position:relative;height:250vh}
+  .hero__pin{position:sticky;top:0;height:100vh;overflow:hidden;
+             background:color-mix(in srgb, var(--dark), var(--light) calc(var(--pb) * 100%))}
+  .hero__layer{position:absolute;inset:0;display:grid;place-items:center}
+
+  /* 1. full-bleed → dikrop jadi bujursangkar (clip-path) → baru mengecil (scale) */
+  .card{
+    grid-area:1/1;width:100vw;height:100vh;
+    overflow:hidden;pointer-events:none;will-change:transform,clip-path;
+    clip-path: inset(0 calc((100vw - 100vh) / 2 * var(--pa))
+                     round calc(var(--radius) * var(--pa)));
+    transform: scale(calc(1 - (1 - var(--end-scale)) * var(--pb)));
+    background:#0b1533 linear-gradient(#20406e 0%,#e8a765 62%,#1b2b40 100%);
+  }
+  .card video,.card img{width:100%;height:100%;object-fit:cover;display:block}
+
+  /* 2. headline: nyatu putih di atas video → membelah & menggelap */
+  .head{grid-area:1/1;display:flex;align-items:center;justify-content:center;
+        margin:0;font-size:clamp(28px,3.4vw,52px);font-weight:500;letter-spacing:-.02em;white-space:nowrap;
+        color:color-mix(in srgb, #fdfdfd, var(--ink) calc(var(--pb) * 100%));}
+  .head span{display:inline-block;will-change:transform}
+  .head span + span{margin-left:.28em}
+  /* geser = setengah lebar kartu akhir (50vh * end-scale) + gap */
+  .head span:first-child{transform:translateX(calc(-1 * (50vh * var(--end-scale) + var(--gap)) * var(--pb)))}
+  .head span:last-child {transform:translateX(calc(     (50vh * var(--end-scale) + var(--gap)) * var(--pb)))}
+
+  /* 3. subline muncul belakangan */
+  .sub{grid-area:1/1;align-self:end;margin:0 0 6vh;max-width:34ch;text-align:center;
+       font-family:Georgia,"Times New Roman",serif;font-size:17px;line-height:1.45;
+       opacity:var(--pb);transform:translateY(calc(40px * (1 - var(--pb))));}
+
+  /* 4. cue "scroll to explore" hilang duluan */
+  .cue{grid-area:1/1;align-self:end;margin:0 0 6vh;color:#fff;font-size:13px;letter-spacing:.01em;
+       opacity:calc(1 - var(--pa) * 2.5);}
+
+  .about{min-height:100vh;padding:14vh 6vw;font-size:clamp(24px,2.4vw,38px);line-height:1.35;max-width:22ch}
+
+  @media (prefers-reduced-motion: reduce){ :root{--p:1 !important} }
+  @media (max-width:768px){
+    :root{--end-scale:.6;--gap:0px}
+    .head{flex-direction:column;white-space:normal;text-align:center;
+          gap:calc((60vh * .6 + 24px) * var(--pb) * 2)}
+    .head span+span{margin-left:0}
+    .head span:first-child,.head span:last-child{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<section class="hero" id="hero">
+  <div class="hero__pin">
+    <div class="hero__layer">
+      <div class="card">
+        <!-- ganti: <video src="hero.mp4" autoplay muted loop playsinline></video> -->
+      </div>
+      <h1 class="head"><span>Welcome to the</span><span>Open Economy</span></h1>
+      <p class="sub">At Ondo, we design institutional-grade platforms, assets, and infrastructure to bring financial markets onchain.</p>
+      <p class="cue" aria-hidden="true">Scroll to explore ↓</p>
+    </div>
+  </div>
+</section>
+
+<section class="about"><p>Section berikutnya.</p></section>
+
+<script>
+const hero = document.getElementById('hero');
+const set = () => {
+  const range = hero.offsetHeight - innerHeight;
+  const p = Math.min(1, Math.max(0, -hero.getBoundingClientRect().top / range));
+  document.documentElement.style.setProperty('--p', p.toFixed(4));
+};
+addEventListener('scroll', set, {passive:true});
+addEventListener('resize', set);
+set();
+</script>
+</body>
+</html>

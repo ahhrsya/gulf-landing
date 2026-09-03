@@ -1,0 +1,1174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Dubai Creative Park, a 500,000 sq ft wellness and fitness destination by Gulfalts.">
+  <title>Dubai Creative Park | Gulfalts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="preload" href="../assets/creative-park-hero.avif" as="image" type="image/avif">
+  <style>
+    :root {
+      --paper: #ffffff;
+      --ink: #0b0b0b;
+      --muted: #777774;
+      --line: #dededb;
+      --dark: #111111;
+      --radius: 28px;
+      --section-gap: 48px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "DM Sans", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.35;
+      text-rendering: optimizeLegibility;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.08;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.14'/%3E%3C/svg%3E");
+      mix-blend-mode: multiply;
+      z-index: 20;
+    }
+
+    a { color: inherit; }
+    img { display: block; max-width: 100%; }
+    button { font: inherit; }
+
+    :focus-visible {
+      outline: 3px solid currentColor;
+      outline-offset: 4px;
+    }
+
+    .section {
+      width: 100%;
+      margin: 0;
+      padding-left: 40px;
+      padding-right: 40px;
+      background: var(--paper);
+      overflow: clip;
+    }
+
+    .eyebrow {
+      margin: 0 0 18px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .hero {
+      position: relative;
+      height: 250vh;
+      min-height: 0;
+      padding: 0;
+      background: #fff;
+      overflow: visible;
+      isolation: isolate;
+    }
+
+    .hero-pin {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      min-height: 680px;
+      overflow: hidden;
+      padding: 80px 40px;
+      background: color-mix(in srgb, #0b0b0b, #fff calc(var(--hero-light, 0) * 100%));
+      isolation: isolate;
+    }
+
+    .hero-media,
+    .hero-media::after {
+      position: absolute;
+      inset: 0;
+    }
+
+    .hero-media {
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background: #73736d;
+      clip-path: inset(0 max(0px, calc((100vw - 100vh) / 2 * var(--hero-crop, 0))) round calc(78px * var(--hero-crop, 0)));
+      transform: scale(calc(1 - (1 - var(--hero-end-scale, 0.44)) * var(--hero-light, 0)));
+      transform-origin: center;
+      will-change: transform, clip-path;
+    }
+    .hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: center; filter: saturate(0.78) contrast(1.02); }
+    .hero-media::after {
+      content: "";
+      background: linear-gradient(180deg, rgba(8, 8, 8, 0.3), rgba(8, 8, 8, 0.05) 45%, rgba(8, 8, 8, 0.78));
+      opacity: calc(1 - var(--hero-light, 0));
+    }
+
+    .hero-nav {
+      position: absolute;
+      inset: 80px 40px auto;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 20px;
+      align-items: start;
+      color: color-mix(in srgb, #fff, var(--ink) calc(var(--hero-light, 0) * 100%));
+    }
+
+    .hero-nav .brand { grid-column: 1 / 4; }
+    .hero-nav .nav-links:nth-of-type(1) { grid-column: 7 / 9; }
+    .hero-nav .nav-links:nth-of-type(2) { grid-column: 10 / 12; }
+    .hero-nav .hero-actions { grid-column: 12 / 13; }
+
+    .brand { position: relative; display: inline-flex; width: max-content; }
+    .brand img { width: 104px; height: auto; }
+    .brand .logo-dark { position: absolute; inset: 0 auto auto 0; opacity: var(--hero-light, 0); }
+
+    .nav-links {
+      display: grid;
+      gap: 0;
+      padding-top: 0;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .nav-links a { width: max-content; }
+    .nav-links a,
+    .hero-actions a { text-decoration: none; }
+    .nav-links a:hover,
+    .hero-actions a:hover { opacity: 0.68; }
+
+    .hero-actions {
+      display: flex;
+      justify-content: end;
+      gap: 24px;
+      align-items: start;
+      padding-top: 0;
+      font-size: 13px;
+    }
+
+    .search { position: relative; display: inline-flex; align-items: center; padding-right: 18px; }
+    .search::before { content: ""; position: absolute; right: 5px; top: 3px; width: 7px; height: 7px; border: 1px solid currentColor; border-radius: 50%; }
+    .search::after { content: ""; position: absolute; right: 1px; top: 11px; width: 5px; border-top: 1px solid currentColor; transform: rotate(45deg); transform-origin: left center; }
+
+    .menu {
+      width: 22px;
+      height: 16px;
+      border-top: 1px solid currentColor;
+      border-bottom: 1px solid currentColor;
+      position: relative;
+    }
+
+    .menu::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 7px;
+      border-top: 1px solid currentColor;
+    }
+
+    .hero-copy {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      max-width: none;
+      text-align: center;
+      color: #fff;
+      z-index: 2;
+      color: color-mix(in srgb, #fff, var(--ink) calc(var(--hero-light, 0) * 100%));
+    }
+
+    .hero-copy .eyebrow { margin-bottom: 22px; color: color-mix(in srgb, rgba(255, 255, 255, 0.86), var(--ink) calc(var(--hero-light, 0) * 100%)); }
+
+    h1, h2, h3, h4, p { margin-top: 0; }
+    h1, h2, h3, h4 { font-weight: 400; }
+
+    h1 {
+      max-width: none;
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.28em;
+      font-size: clamp(28px, 3.4vw, 52px);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    h1 span {
+      display: inline-block;
+      will-change: transform;
+    }
+
+    h1 span:first-child { transform: translateX(calc(-1 * (50vh * var(--hero-end-scale, 0.44) + 45px) * var(--hero-light, 0))); }
+    h1 span:last-child { transform: translateX(calc((50vh * var(--hero-end-scale, 0.44) + 45px) * var(--hero-light, 0))); }
+
+    .hero-copy .eyebrow,
+    .hero-copy h1 { transition: none; }
+
+    .hero-copy .eyebrow { font-size: 12px; letter-spacing: 0.08em; }
+    .hero-copy .eyebrow { transform: translateY(calc(-10px * var(--hero-light, 0))); }
+
+    .hero-copy .eyebrow::after {
+      content: "";
+      display: block;
+      height: 0;
+    }
+
+    .hero-scroll-cue {
+      position: absolute;
+      z-index: 2;
+      left: 50%;
+      right: auto;
+      bottom: 6vh;
+      margin: 0;
+      transform: translateX(-50%);
+      color: color-mix(in srgb, #fff, var(--ink) calc(var(--hero-light, 0) * 100%));
+      font-size: 12px;
+      opacity: calc(1 - var(--hero-crop, 0) * 2.5);
+    }
+
+    .hero-about-copy {
+      position: absolute;
+      z-index: 2;
+      left: 50%;
+      bottom: 6vh;
+      width: min(580px, calc(100% - 80px));
+      margin: 0;
+      transform: translate(-50%, calc(40px * (1 - var(--hero-light, 0))));
+      color: color-mix(in srgb, #fff, var(--ink) calc(var(--hero-light, 0) * 100%));
+      text-align: center;
+      font-size: clamp(17px, 1.8vw, 25px);
+      line-height: 1.1;
+      opacity: var(--hero-light, 0);
+      will-change: opacity, transform;
+    }
+
+    .metrics { min-height: 100svh; padding: 80px 40px; display: grid; align-content: center; }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.15fr);
+      gap: clamp(48px, 8vw, 128px);
+      align-items: center;
+    }
+
+    .metrics-intro { max-width: 430px; padding-top: 22px; font-size: clamp(23px, 2.8vw, 38px); letter-spacing: -0.045em; line-height: 0.98; }
+    .metrics-intro .eyebrow { margin-bottom: 24px; font-size: 12px; letter-spacing: 0.08em; line-height: 1.35; }
+    .metrics-intro .muted { color: #999997; }
+    .metrics-source { margin: 42px 0 0; color: #999997; font-size: 11px; letter-spacing: 0; line-height: 1.35; }
+    .metrics-source a { color: inherit; text-underline-offset: 3px; }
+
+    .metric-list { border-top: 1px solid var(--line); }
+    .metric {
+      display: grid;
+      grid-template-columns: minmax(290px, 1fr) minmax(240px, 0.62fr);
+      gap: clamp(20px, 3vw, 44px);
+      min-height: 142px;
+      align-items: center;
+      padding: 22px 0 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .metric-value { font-size: clamp(68px, 7.8vw, 126px); font-weight: 400; letter-spacing: -0.09em; line-height: 0.86; white-space: nowrap; }
+    .metric-label { max-width: 24ch; color: #777774; font-family: "DM Sans", Arial, sans-serif; font-size: clamp(14px, 1.1vw, 17px); line-height: 1.1; }
+
+    .immersive { padding: 0; overflow: visible; background: #fff; }
+
+    /* ---------------- SCALE GRID (verbatim from scalegrid-6480796b.html) ---------------- */
+    .scale-grid { padding: 0 1.25rem }
+    .scale-grid-wrap { position: relative; overflow: hidden }
+    .scale-grid-content { display: grid; gap: 1rem }
+    .scale-grid-item { position: relative; overflow: hidden; background: #111; aspect-ratio: 3/2 }
+    .scale-grid-item img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block }
+
+    @media (min-width: 650px) {
+      .scale-grid {
+        font-size: min(0.5625vw, 0.88vh);
+        height: 400vh;
+        padding: 0;
+      }
+      .scale-grid-wrap { position: sticky; top: 0; height: 100svh }
+      .scale-grid-content {
+        display: block; gap: 0;
+        position: absolute; top: 50%; left: 50%;
+        width: 129.6em; height: 127.8em;
+        transform: translate(-50%, -50%) scale(var(--s, 1));
+        will-change: transform;
+      }
+      .scale-grid-item { position: absolute; aspect-ratio: auto }
+      .scale-grid-item:nth-child(1) { top: 0;         left: 32.9em;  width: 77em;   height: 41.2em }
+      .scale-grid-item:nth-child(2) { top: 50.3em;    left: 0;       width: 30.9em; height: 34.1em }
+      .scale-grid-item:nth-child(3) { top: 43.2em;    left: 32.9em;  width: 63.8em; height: 41.2em }
+      .scale-grid-item:nth-child(4) { top: 50.3em;    right: 0;      width: 30.9em; height: 34.1em }
+      .scale-grid-item:nth-child(5) { bottom: 12.6em; left: 6.6em;   width: 37.5em; height: 28.8em }
+      .scale-grid-item:nth-child(6) { bottom: 0;      left: 46.1em;  width: 63.8em; height: 41.2em }
+      .scale-grid-item:nth-child(3) img { transform: scale(var(--img, 1.5)) }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .scale-grid { height: auto }
+      .scale-grid-wrap { position: static; height: auto }
+    }
+
+    .portfolio { min-height: 100svh; padding: 80px 40px; }
+    .portfolio-eyebrow { margin-bottom: 26px; }
+
+    .portfolio-head { display: flex; align-items: end; justify-content: flex-start; gap: 40px; margin-bottom: 64px; }
+    .portfolio-head h2 { margin-bottom: 0; font-size: clamp(54px, 8vw, 124px); font-weight: 400; letter-spacing: -0.08em; line-height: 0.8; }
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 42px 22px;
+      align-items: start;
+    }
+
+    .project-card { display: block; text-decoration: none; }
+    .project-card figure { margin: 0 0 12px; overflow: hidden; background: #d8d8d5; }
+    .project-card img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.76); transition: transform 700ms cubic-bezier(.16, 1, .3, 1); }
+    .project-card:hover img { transform: scale(1.035); }
+    .project-card h3 { margin-bottom: 3px; font-size: 16px; font-weight: 400; }
+    .project-card p { margin-bottom: 0; color: #898985; font-family: "DM Sans", Arial, sans-serif; font-size: 14px; }
+    .project-card.one { grid-column: 1 / 5; grid-row: 1; margin-top: 0; }
+    .project-card.two { grid-column: 1 / 7; grid-row: 2; margin-top: 0; }
+    .project-card.three { grid-column: 7 / 13; grid-row: 1; margin-top: 0; }
+    .project-card.four { grid-column: 8 / 13; grid-row: 2; margin-top: 64px; }
+    .project-card.one figure { aspect-ratio: 1.45 / 1; border-radius: 5px; }
+    .project-card.two figure { aspect-ratio: 1.65 / 1; border-radius: 5px; }
+    .project-card.three figure { aspect-ratio: 1.35 / 1; border-radius: 5px; }
+    .project-card.four figure { aspect-ratio: 1.45 / 1; border-radius: 5px; }
+
+    .our-strategies {
+      min-height: 340vh;
+      padding: 0 40px;
+      background: #0d0d0d;
+      overflow: visible;
+    }
+
+    .strategy-story-stage {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      min-height: 680px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .strategy-story-eyebrow { position: absolute; z-index: 4; top: clamp(70px, 9vw, 108px); left: 0; color: #fff; }
+    .strategy-story-stage > h2 {
+      position: absolute;
+      z-index: 0;
+      top: clamp(132px, 13vw, 190px);
+      left: 0;
+      right: 0;
+      margin: 0;
+      font-size: clamp(54px, 8vw, 124px);
+      font-weight: 400;
+      letter-spacing: -0.105em;
+      line-height: 0.78;
+      color: #fff;
+    }
+
+    .strategy-story-stage > h2 span { color: #fff; }
+    .strategy-story-side { position: absolute; z-index: 3; right: 0; bottom: 10%; width: min(390px, 29vw); margin: 0; color: rgba(255, 255, 255, 0.72); font-family: "DM Sans", Arial, sans-serif; font-size: clamp(15px, 1.35vw, 19px); letter-spacing: -0.02em; line-height: 1.18; }
+
+    .our-strategy-cards { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+    .our-strategy-card {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: min(440px, 36vw);
+      aspect-ratio: 0.76;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      padding: clamp(24px, 3vw, 42px);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 2px;
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+      transform: translate3d(-50%, 165%, 0);
+      will-change: transform;
+    }
+
+    .our-strategy-card:nth-child(1) { left: 33%; }
+    .our-strategy-card:nth-child(2) { left: 50%; }
+    .our-strategy-card:nth-child(3) { left: 67%; }
+
+    .our-strategy-card-top { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: start; }
+    .our-strategy-card-top .eyebrow { margin: 0; }
+    .our-strategy-card-top > span { font-size: 12px; letter-spacing: 0.08em; }
+    .our-strategy-card-bottom { position: relative; z-index: 2; }
+    .our-strategy-card-bottom h3 { margin: 0 0 14px; font-size: clamp(26px, 2.8vw, 44px); font-weight: 400; letter-spacing: -0.07em; line-height: 0.9; }
+    .our-strategy-card-bottom p { max-width: 31ch; margin: 0; color: #66625f; font-size: clamp(14px, 1.2vw, 18px); line-height: 1.2; }
+
+    .strategies {
+      min-height: 100svh;
+      padding: 80px 40px;
+      background: #ffffff;
+    }
+    .approach-layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+      grid-template-rows: auto minmax(480px, 1fr);
+      column-gap: clamp(56px, 9vw, 150px);
+      row-gap: clamp(54px, 7vw, 104px);
+    }
+    .approach-list {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: start;
+    }
+    .approach-list-intro { margin-bottom: clamp(42px, 5vw, 72px); }
+    .approach-list-intro .eyebrow { margin-bottom: 24px; color: var(--muted); }
+    .approach-list-intro h2 {
+      max-width: 6ch;
+      margin: 0;
+      font-size: clamp(52px, 5.8vw, 88px);
+      font-weight: 400;
+      letter-spacing: -0.09em;
+      line-height: 0.84;
+    }
+    .approach-list-items { border-top: 1px solid rgba(11, 11, 11, 0.16); }
+    .approach-copy-icon {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 28px;
+      color: var(--ink);
+    }
+    .approach-copy-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.5; }
+    .approach-copy-icon svg circle[fill] { fill: currentColor; stroke: none; }
+    .approach-copy-icon svg path[fill] { fill: currentColor; stroke: none; }
+    }
+    .approach-row {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr);
+      align-items: center;
+      width: 100%;
+      gap: 0;
+      padding: 15px 0;
+      border: 0;
+      border-bottom: 1px solid rgba(11, 11, 11, 0.16);
+      background: transparent;
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+    }
+    .approach-row-number {
+      display: grid;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #e8e8e5;
+      font-size: 11px;
+      line-height: 1;
+      transition: background 220ms ease, color 220ms ease;
+    }
+    .approach-row-title { font-size: 16px; font-weight: 400; letter-spacing: -0.02em; }
+    .approach-row.is-active .approach-row-number { background: var(--ink); color: #fff; }
+    .approach-row:hover .approach-row-title, .approach-row:focus-visible .approach-row-title { text-decoration: underline; text-underline-offset: 4px; }
+    .approach-copy {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: start;
+      max-width: 650px;
+      padding-top: 74px;
+      transition: opacity 180ms ease, transform 260ms cubic-bezier(.16, 1, .3, 1);
+    }
+    .approach-copy.is-changing { opacity: 0; transform: translateY(8px); }
+    .approach-copy-description { max-width: 48ch; margin: 0; color: var(--muted); font-size: clamp(20px, 2vw, 30px); letter-spacing: -0.045em; line-height: 1.08; }
+    .approach-image { margin: 0; overflow: hidden; background: #d8d8d5; }
+    .approach-image img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.76); transition: opacity 180ms ease, transform 500ms cubic-bezier(.16, 1, .3, 1); }
+    .approach-image.is-changing img { opacity: 0; transform: scale(1.035); }
+    .approach-support { grid-column: 1; grid-row: 2; align-self: start; width: min(100%, 420px); aspect-ratio: 1.35 / 1; border-radius: 5px; }
+    .approach-main { grid-column: 2; grid-row: 2; align-self: start; width: 100%; aspect-ratio: 0.78; border-radius: 5px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .our-strategy-cards { position: relative; display: grid; gap: 16px; padding-top: 220px; }
+      .our-strategy-card { position: relative; left: auto; top: auto; width: min(440px, 86vw); opacity: 1; transform: none; }
+    }
+
+    .map-section {
+      height: 100svh;
+      min-height: 720px;
+      padding: 80px 40px;
+      background: #f8f8f7;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .map-heading { max-width: 1100px; margin: 0 auto; text-align: center; }
+    .map-heading h2 { max-width: 1000px; margin: 0 auto 18px; font-size: clamp(50px, 6.8vw, 104px); font-weight: 400; letter-spacing: -0.09em; line-height: 0.82; }
+    .map-heading p { max-width: 46ch; margin: 0 auto; color: var(--muted); font-size: 15px; }
+    .map-wrap { position: relative; width: min(100%, 75svh, 1120px); aspect-ratio: 5 / 3; min-height: 0; margin: 0 auto; overflow: hidden; border-radius: 24px; }
+    #dubai-map { width: 100%; height: 100%; background: #e8e8e5; filter: grayscale(1) contrast(0.92); }
+    .leaflet-control-zoom { border: 0 !important; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important; }
+    .leaflet-control-zoom a { color: var(--ink) !important; }
+    .leaflet-control-attribution { background: rgba(255, 255, 255, 0.82) !important; }
+    .dubai-marker { display: block; width: 16px; height: 16px; box-sizing: border-box; border: 3px solid #fff; border-radius: 50%; background: #c94d3d; box-shadow: 0 0 0 6px rgba(201, 77, 61, 0.18); transition: transform 180ms ease, box-shadow 180ms ease; }
+    .leaflet-marker-icon:hover .dubai-marker { transform: scale(1.16); box-shadow: 0 0 0 8px rgba(201, 77, 61, 0.2); }
+    .leaflet-popup-content-wrapper { padding: 0; border-radius: 0; box-shadow: 0 14px 34px rgba(15, 15, 15, 0.16); }
+    .leaflet-popup-content { width: 250px !important; margin: 0; }
+    .map-card { color: var(--ink); font-family: "DM Sans", Arial, sans-serif; }
+    .map-card-image { width: 100%; height: 104px; object-fit: cover; filter: saturate(0.78); }
+    .map-card-body { padding: 16px 18px 18px; }
+    .map-card-kicker { margin-bottom: 9px; color: #777774; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .map-card h3 { margin: 0 0 8px; font-size: 22px; font-weight: 400; letter-spacing: -0.05em; line-height: 0.95; }
+    .map-card p { margin: 0; color: #777774; font-size: 13px; line-height: 1.25; }
+
+    .cta {
+      min-height: 72svh;
+      padding: 80px 40px;
+      background: #0b0b0b;
+      color: #fff;
+      display: grid;
+      grid-template-columns: minmax(280px, 1.25fr) minmax(220px, 0.75fr);
+      gap: clamp(48px, 10vw, 160px);
+      align-items: end;
+    }
+
+    .cta .eyebrow { color: #8b8b88; }
+    .cta h2 { max-width: 10ch; margin: 0; font-size: clamp(58px, 8vw, 126px); font-weight: 400; letter-spacing: -0.09em; line-height: 0.8; }
+    .cta-copy { max-width: 30ch; margin: 0 0 4px; color: #c6c6c2; font-size: clamp(20px, 2vw, 30px); letter-spacing: -0.045em; line-height: 1; }
+    .cta-link { display: inline-flex; align-items: center; gap: 16px; margin-top: 34px; padding-bottom: 8px; border-bottom: 1px solid #fff; color: #fff; font-size: 15px; text-decoration: none; }
+    .cta-link::after { content: "↗"; font-size: 20px; }
+
+    .site-footer {
+      min-height: 74svh;
+      padding: 80px 40px;
+      background: #0b0b0b;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .footer-top { display: grid; grid-template-columns: 1.1fr 1fr 1fr auto; gap: 40px; font-size: 14px; }
+    .footer-label { margin-bottom: 16px; color: #777774; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .footer-links { display: grid; gap: 8px; }
+    .footer-links a { color: #fff; text-decoration: none; }
+    .footer-links a:hover { color: #aaa; }
+    .footer-brand { width: calc(100% + 80px); margin-top: 80px; margin-left: -40px; font-size: clamp(140px, 23vw, 430px); font-weight: 400; letter-spacing: -0.13em; line-height: 0.66; text-align: left; white-space: nowrap; }
+    .footer-bottom { display: flex; justify-content: space-between; gap: 28px; color: #777774; font-size: 12px; }
+    .footer-eyebrow { margin-bottom: 34px; color: #8b8b88; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
+
+    @media (max-width: 820px) {
+      :root { --section-gap: 24px; }
+      .section { width: 100%; margin-top: 0; padding-left: 20px; padding-right: 20px; }
+      .hero { height: 230vh; min-height: 0; padding: 0; }
+      .hero-pin { min-height: 0; padding: 34px 28px 28px; }
+      .hero-media, .hero-media::after { inset: 0; }
+      .hero-nav { inset: 34px 28px auto; grid-template-columns: 1fr auto; gap: 16px; }
+      .hero-nav .brand, .hero-nav .hero-actions { grid-column: auto; }
+      .nav-links { display: none; }
+      .hero-actions { gap: 16px; font-size: 12px; }
+      .hero-copy { left: 28px; right: 28px; bottom: 64px; }
+      .hero-copy .eyebrow { margin-bottom: 18px; }
+      h1 { max-width: 10ch; flex-direction: column; gap: calc((60vh * 0.6 + 24px) * var(--hero-light, 0) * 2); font-size: clamp(40px, 11vw, 64px); line-height: 0.94; white-space: normal; }
+      h1 span:first-child, h1 span:last-child { transform: none; }
+      .hero-scroll-cue { right: auto; bottom: 6vh; }
+      .hero-about-copy { width: calc(100% - 40px); font-size: 17px; }
+      .metrics { padding: 62px 20px; }
+      .metrics-grid { grid-template-columns: 1fr; gap: 36px; min-height: 0; }
+      .metrics-intro { max-width: 330px; }
+      .metric { grid-template-columns: minmax(0, 0.9fr) minmax(135px, 0.7fr); gap: 20px; min-height: 98px; padding: 20px 0 22px; }
+      .metric-value { font-size: clamp(40px, 10vw, 68px); }
+      .metric-label { max-width: 20ch; font-size: 14px; line-height: 1.08; }
+      .immersive { padding: 0; }
+      .portfolio { padding: 60px 20px 36px; }
+      .portfolio-head { display: block; margin-bottom: 38px; }
+      .project-grid { grid-template-columns: 1fr 1fr; gap: 30px 12px; }
+      .project-card.one, .project-card.two, .project-card.three, .project-card.four { grid-column: auto; grid-row: auto; margin-top: 0; }
+      .project-card.three, .project-card.four { grid-column: 1 / 3; }
+      .our-strategies { min-height: 300vh; padding: 0 20px; }
+      .strategy-story-stage { min-height: 680px; }
+      .strategy-story-eyebrow { top: 72px; }
+      .strategy-story-stage > h2 { top: 132px; left: 0; right: 0; font-size: clamp(54px, 12vw, 88px); }
+      .strategy-story-side { right: 0; bottom: 7%; width: min(280px, 46%); font-size: 14px; line-height: 1.2; }
+      .our-strategy-card:nth-child(1), .our-strategy-card:nth-child(2), .our-strategy-card:nth-child(3) { left: 50%; }
+      .our-strategy-card { width: min(360px, 78vw); padding: 24px; }
+      .our-strategy-card-bottom h3 { font-size: clamp(26px, 7vw, 40px); }
+      .our-strategy-card-bottom p { font-size: 14px; }
+      .cta { min-height: 620px; padding: 72px 20px 42px; grid-template-columns: 1fr; gap: 52px; }
+      .cta h2 { font-size: clamp(58px, 16vw, 96px); }
+      .cta-copy { max-width: 24ch; font-size: clamp(22px, 6vw, 34px); }
+      .strategies { min-height: 0; padding: 72px 20px 64px; }
+      .approach-layout { display: grid; grid-template-columns: 1fr; grid-template-rows: auto; gap: 36px; }
+      .approach-list, .approach-copy, .approach-support, .approach-main { grid-column: 1; }
+      .approach-list { grid-row: 1; }
+      .approach-copy { grid-row: 2; }
+      .approach-copy { padding-top: 0; }
+      .approach-support { grid-row: 3; width: min(100%, 420px); aspect-ratio: 1.35 / 1; }
+      .approach-main { grid-row: 4; aspect-ratio: 0.9; }
+      .approach-copy-description { font-size: 15px; }
+      .approach-row { padding: 14px 0; }
+      .map-section { height: auto; min-height: 0; padding: 72px 20px 64px; display: block; }
+      .map-heading { margin-bottom: 32px; }
+      .map-wrap { width: 100%; height: auto; aspect-ratio: 5 / 3; min-height: 0; }
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 34px 24px; }
+      .footer-brand { width: calc(100% + 40px); margin-top: 100px; margin-left: -20px; font-size: clamp(72px, 20vw, 150px); }
+      .footer-bottom { align-items: start; flex-direction: column; gap: 8px; }
+      .site-footer { padding: 48px 20px 32px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="section hero" id="hero" aria-labelledby="hero-title">
+      <div class="hero-pin hero__pin">
+        <div class="hero-media" aria-hidden="true">
+          <img src="../assets/creative-park-hero.avif" alt="">
+        </div>
+
+        <header class="hero-nav" aria-label="Primary navigation">
+          <a class="brand" href="#hero" aria-label="Gulfalts home">
+            <img class="logo-light" src="../assets/gulfalts-white.svg" alt="Gulfalts">
+            <img class="logo-dark" src="../assets/gulfalts-black.svg" alt="">
+          </a>
+          <nav class="nav-links" aria-label="Explore">
+            <a href="#about">Explore</a>
+            <a href="#portfolio">Projects</a>
+            <a href="#what-we-do">What We Do</a>
+          </nav>
+          <nav class="nav-links" aria-label="Company">
+            <a href="#metrics">Sustainability</a>
+            <a href="#dubai">Digital Future</a>
+            <a href="#contact">Careers</a>
+          </nav>
+          <div class="hero-actions">
+            <a class="search" href="#portfolio">Search</a>
+            <a class="menu" href="#portfolio" aria-label="Open menu"></a>
+          </div>
+        </header>
+
+        <div class="hero-copy">
+          <p class="eyebrow">Dubai Creative Park</p>
+          <h1 id="hero-title"><span>Where better business</span><span>meets better living.</span></h1>
+        </div>
+        <p class="hero-scroll-cue" aria-hidden="true">Scroll to explore ↓</p>
+        <p class="hero-about-copy" id="about">Dubai Creative Park brings fitness, sport, wellness, curated F&amp;B and green landscape together inside one integrated destination.</p>
+      </div>
+    </section>
+
+    <section class="section metrics" id="metrics" aria-labelledby="metrics-title">
+      <div class="metrics-grid">
+        <div class="metrics-intro">
+          <p class="eyebrow">At a glance</p>
+          <p id="metrics-title">Gulfalts is building a focused portfolio across Dubai's fastest-growing sectors.</p>
+          <p class="muted">Public portfolio figures, paired with the market context that makes Dubai investable.</p>
+          <p class="metrics-source">Sources: <a href="https://www.gulfalts.com/" target="_blank" rel="noreferrer">Gulfalts portfolio</a> and <a href="https://www.difc.com/whats-on/news/dubai-international-financial-centre-announces-landmark-annual-results-for-2025" target="_blank" rel="noreferrer">DIFC 2025 results</a>.</p>
+        </div>
+        <div class="metric-list" aria-label="Public portfolio and market metrics">
+          <div class="metric">
+            <strong class="metric-value">1.06M</strong>
+            <span class="metric-label">sq ft net leasable area across the current Gulfalts portfolio</span>
+          </div>
+          <div class="metric">
+            <strong class="metric-value">500K</strong>
+            <span class="metric-label">sq ft Dubai Creative Park destination</span>
+          </div>
+          <div class="metric">
+            <strong class="metric-value">1,289</strong>
+            <span class="metric-label">family-related entities in DIFC, 2025 market context</span>
+          </div>
+          <div class="metric">
+            <strong class="metric-value">AED 2.13B</strong>
+            <span class="metric-label">DIFC revenue in 2025, shown as market context</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section immersive" id="immersive" aria-label="Creative Park">
+      <!-- ===== component: scale-grid, verbatim from scalegrid-6480796b.html. #3 (js-scale-ref) is the hero the grid zooms into. ===== -->
+      <section class="scale-grid js-scale-grid">
+        <div class="scale-grid-wrap">
+          <div class="scale-grid-content js-scale">
+            <div class="scale-grid-item"><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park aerial view"></div>
+            <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park fitness space at night"></div>
+            <div class="scale-grid-item js-scale-ref"><img src="../assets/fitness-day.png" alt="Creative Park fitness space by day"></div>
+            <div class="scale-grid-item"><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park landscape"></div>
+            <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park interior at night"></div>
+            <div class="scale-grid-item"><img src="../assets/fitness-day.png" alt="Creative Park fitness space"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="section portfolio" id="portfolio" aria-labelledby="portfolio-title">
+      <p class="eyebrow portfolio-eyebrow">Our portfolio</p>
+      <div class="portfolio-head">
+        <h2 id="portfolio-title">Featured projects</h2>
+      </div>
+
+      <div class="project-grid">
+        <a class="project-card one" href="#hero">
+          <figure><img src="../assets/fitness-day.png" alt="Dubai Creative Park fitness space"></figure>
+          <h3>Dubai Creative Park</h3>
+          <p>Wellness and fitness destination</p>
+        </a>
+        <a class="project-card two" href="https://www.gulfalts.com/" target="_blank" rel="noreferrer">
+          <figure><img src="../assets/creative-park-hero.avif" alt="Dubai Fintech District architectural environment"></figure>
+          <h3>Dubai Fintech District</h3>
+          <p>Business park, Dubai</p>
+        </a>
+        <a class="project-card three" href="https://www.gulfalts.com/" target="_blank" rel="noreferrer">
+          <figure><img src="../assets/fitness-night.jpg" alt="V8 District commercial interior placeholder"></figure>
+          <h3>V8 District</h3>
+          <p>Specialized commercial facilities</p>
+        </a>
+        <a class="project-card four" href="#hero">
+          <figure><img src="../assets/creative-park-hero.avif" alt="Commercial destination rendering"></figure>
+          <h3>Motor Garten</h3>
+          <p>Specialized commercial facilities</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="section strategies" id="what-we-do" aria-label="Our approach">
+      <div class="approach-layout">
+        <div class="approach-list" aria-label="Gulfalts investment approach">
+          <div class="approach-list-intro">
+            <p class="eyebrow">Our approach</p>
+            <h2>What We Do</h2>
+          </div>
+          <div class="approach-list-items">
+            <button class="approach-row is-active" type="button" data-approach-index="0" aria-pressed="true">
+              <span class="approach-row-number">1</span>
+              <span class="approach-row-title">Conviction</span>
+            </button>
+            <button class="approach-row" type="button" data-approach-index="1" aria-pressed="false">
+              <span class="approach-row-number">2</span>
+              <span class="approach-row-title">Connectivity</span>
+            </button>
+            <button class="approach-row" type="button" data-approach-index="2" aria-pressed="false">
+              <span class="approach-row-number">3</span>
+              <span class="approach-row-title">Scale</span>
+            </button>
+            <button class="approach-row" type="button" data-approach-index="3" aria-pressed="false">
+              <span class="approach-row-number">4</span>
+              <span class="approach-row-title">Future proof assets</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="approach-copy" aria-live="polite">
+          <div class="approach-copy-icon" data-approach-icon aria-hidden="true">
+            <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="15"></circle><circle cx="24" cy="24" r="6"></circle><path d="M24 4v7M24 37v7M4 24h7M37 24h7"></path><circle cx="24" cy="24" r="2.5" fill="currentColor"></circle></svg>
+          </div>
+          <p class="approach-copy-description" data-approach-description>We bring proprietary local expertise to a market defined by record FDI inflows and a surging population. This allows us to identify durable themes and invest with conviction in assets positioned for institutional growth.</p>
+        </div>
+
+        <figure class="approach-image approach-support">
+          <img data-approach-support src="../assets/creative-park-hero.avif" alt="Architectural view of Dubai Creative Park">
+        </figure>
+        <figure class="approach-image approach-main">
+          <img data-approach-main src="../assets/fitness-day.png" alt="Dubai Creative Park fitness space">
+        </figure>
+      </div>
+    </section>
+
+    <section class="section our-strategies" id="our-strategies" aria-labelledby="our-strategies-title">
+      <div class="strategy-story-stage">
+        <p class="eyebrow strategy-story-eyebrow">Our strategies</p>
+        <h2 id="our-strategies-title">We shape spaces<br><span>for everyday life.</span></h2>
+        <p class="strategy-story-side">A connected destination where movement, wellness and community shape everyday life.</p>
+
+        <div class="our-strategy-cards" aria-label="Gulfalts strategy pillars">
+          <article class="our-strategy-card" data-our-strategy-card>
+            <div class="our-strategy-card-top">
+              <p class="eyebrow">Core</p>
+              <span>01</span>
+            </div>
+            <div class="our-strategy-card-bottom">
+              <h3>Core</h3>
+              <p>Stabilized, income-generating assets anchored by long leases and corporate tenants. Grade A offices and logistics facilities deliver predictable cash flows across Dubai's structural growth.</p>
+            </div>
+          </article>
+          <article class="our-strategy-card" data-our-strategy-card>
+            <div class="our-strategy-card-top">
+              <p class="eyebrow">Opportunistic</p>
+              <span>02</span>
+            </div>
+            <div class="our-strategy-card-bottom">
+              <h3>Opportunistic</h3>
+              <p>Selective strategies targeting market dislocations and development opportunities in emerging corridors where Dubai's demand growth outpaces global benchmarks.</p>
+            </div>
+          </article>
+          <article class="our-strategy-card" data-our-strategy-card>
+            <div class="our-strategy-card-top">
+              <p class="eyebrow">Future proof assets</p>
+              <span>03</span>
+            </div>
+            <div class="our-strategy-card-bottom">
+              <h3>Future proof assets</h3>
+              <p>ESG-compliant, smart-infrastructure-ready assets aligned with AI, fintech and next generation tenants, securing long-term relevance in Dubai's evolving economy.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section map-section" id="dubai" aria-labelledby="dubai-title">
+      <div class="map-heading">
+        <p class="eyebrow">Dubai, United Arab Emirates</p>
+        <h2 id="dubai-title">A place connected to<br>the city.</h2>
+        <p>Explore Dubai in context. The map stays focused on the city and gives the destination a clear geographic point of reference.</p>
+      </div>
+      <div class="map-wrap">
+        <div id="dubai-map" role="application" aria-label="Interactive map focused on Dubai"></div>
+      </div>
+    </section>
+
+    <section class="section cta" id="cta" aria-labelledby="cta-title">
+      <div>
+        <p class="eyebrow">Get in touch</p>
+        <h2 id="cta-title">Build what comes next.</h2>
+      </div>
+      <div>
+        <p class="cta-copy">We partner with institutions, family offices and development partners building category-defining destinations in Dubai.</p>
+        <a class="cta-link" href="#contact">Start a conversation</a>
+      </div>
+    </section>
+
+    <footer class="section site-footer" id="contact">
+      <p class="eyebrow footer-eyebrow">Get in touch</p>
+      <div class="footer-top">
+        <div>
+          <p class="footer-label">Navigation</p>
+          <div class="footer-links">
+            <a href="#about">About</a>
+            <a href="#portfolio">Projects</a>
+            <a href="#what-we-do">What We Do</a>
+            <a href="#dubai">Dubai</a>
+            <a href="#contact">Contact</a>
+          </div>
+        </div>
+        <div>
+          <p class="footer-label">Explore</p>
+          <div class="footer-links">
+            <a href="#immersive">Creative Park</a>
+            <a href="#metrics">Thesis</a>
+            <a href="https://www.gulfalts.com/" target="_blank" rel="noreferrer">Gulfalts</a>
+          </div>
+        </div>
+        <div>
+          <p class="footer-label">Contact us</p>
+          <div class="footer-links">
+            <a href="mailto:info@gulfalts.com">info@gulfalts.com</a>
+            <span>Dubai, UAE</span>
+          </div>
+        </div>
+        <div class="footer-links" aria-label="Social links">
+          <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn</a>
+          <a href="https://x.com/" target="_blank" rel="noreferrer">X</a>
+        </div>
+      </div>
+      <div class="footer-brand" aria-label="Gulfalts">GULFALTS</div>
+      <div class="footer-bottom">
+        <span>© 2026 Gulf Alternatives. All rights reserved.</span>
+        <span>Institutional commercial real estate in Dubai</span>
+      </div>
+    </footer>
+  </main>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const dubaiMap = L.map('dubai-map', {
+      center: [25.2048, 55.2708],
+      zoom: 10,
+      minZoom: 9,
+      maxZoom: 14,
+      scrollWheelZoom: false,
+      zoomControl: true,
+      maxBounds: [[24.75, 54.75], [25.55, 55.75]],
+      maxBoundsViscosity: 0.85
+    });
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(dubaiMap);
+
+    const dubaiMarker = L.divIcon({
+      className: '',
+      html: '<span class="dubai-marker"></span>',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
+    });
+
+    const venuePoints = [
+      {
+        name: 'Dubai Fintech District',
+        category: 'Business Park',
+        coordinates: [25.2147, 55.2822],
+        image: '../assets/creative-park-hero.avif',
+        description: 'Design-led workspaces, cafés and gallery-style venues for high-growth companies.'
+      },
+      {
+        name: 'Dubai Creative Park',
+        category: 'Cultural Landmark',
+        coordinates: [25.1392, 55.2348],
+        image: '../assets/fitness-day.png',
+        description: 'A 500,000 sq ft wellness and fitness destination balanced between built space and green landscape.'
+      },
+      {
+        name: 'V8 District',
+        category: 'Specialized Commercial Facilities',
+        coordinates: [25.1451, 55.2372],
+        image: '../assets/fitness-night.jpg',
+        description: 'Premium-grade space for high-end automotive businesses and their communities.'
+      },
+      {
+        name: 'Motor Garten',
+        category: 'Specialized Commercial Facilities',
+        coordinates: [25.1514, 55.2421],
+        image: '../assets/creative-park-hero.avif',
+        description: 'A purpose-built destination for automotive businesses, supported by full-service management.'
+      }
+    ];
+
+    const markerBounds = L.latLngBounds(venuePoints.map(({ coordinates }) => coordinates));
+
+    venuePoints.forEach((venue) => {
+      const popup = `
+        <article class="map-card">
+          <img class="map-card-image" src="${venue.image}" alt="">
+          <div class="map-card-body">
+            <div class="map-card-kicker">${venue.category}</div>
+            <h3>${venue.name}</h3>
+            <p>${venue.description}</p>
+          </div>
+        </article>
+      `;
+
+      const marker = L.marker(venue.coordinates, { icon: dubaiMarker })
+        .addTo(dubaiMap)
+        .bindPopup(popup, { maxWidth: 280, closeButton: true, autoPanPadding: [40, 40] });
+
+      let hoverCloseTimer;
+      const keepPopupOpen = () => window.clearTimeout(hoverCloseTimer);
+      const schedulePopupClose = () => {
+        hoverCloseTimer = window.setTimeout(() => marker.closePopup(), 180);
+      };
+
+      marker.on('mouseover', () => {
+        keepPopupOpen();
+        marker.openPopup();
+      });
+      marker.on('mouseout', schedulePopupClose);
+      marker.on('popupopen', () => {
+        const popupElement = marker.getPopup().getElement();
+        if (!popupElement || popupElement.dataset.hoverBound) return;
+        popupElement.dataset.hoverBound = 'true';
+        popupElement.addEventListener('mouseenter', keepPopupOpen);
+        popupElement.addEventListener('mouseleave', schedulePopupClose);
+      });
+    });
+
+    dubaiMap.fitBounds(markerBounds, { padding: [72, 72], maxZoom: 13 });
+
+    const hero = document.querySelector('.hero');
+    const heroPin = document.querySelector('.hero-pin');
+    const ourStrategies = document.querySelector('.our-strategies');
+    const ourStrategyCards = [...document.querySelectorAll('[data-our-strategy-card]')];
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let framePending = false;
+    let strategyProgress = 0;
+
+    const approachRows = [...document.querySelectorAll('[data-approach-index]')];
+    const approachCopy = document.querySelector('.approach-copy');
+    const approachIcon = document.querySelector('[data-approach-icon]');
+    const approachDescription = document.querySelector('[data-approach-description]');
+    const approachSupport = document.querySelector('[data-approach-support]');
+    const approachMain = document.querySelector('[data-approach-main]');
+    const approachItems = [
+      {
+        title: 'Conviction',
+        icon: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="15"></circle><circle cx="24" cy="24" r="6"></circle><path d="M24 4v7M24 37v7M4 24h7M37 24h7"></path><circle cx="24" cy="24" r="2.5" fill="currentColor"></circle></svg>',
+        description: 'We bring proprietary local expertise to a market defined by record FDI inflows and a surging population. This allows us to identify durable themes and invest with conviction in assets positioned for institutional growth.',
+        supportImage: '../assets/creative-park-hero.avif',
+        supportAlt: 'Architectural view of Dubai Creative Park',
+        mainImage: '../assets/fitness-day.png',
+        mainAlt: 'Dubai Creative Park fitness space'
+      },
+      {
+        title: 'Connectivity',
+        icon: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="17"></circle><path d="M7 24h34M24 7c5 5 7 10.7 7 17s-2 12-7 17c-5-5-7-12-7-17s2-12 7-17Z"></path><path d="M10 15h28M10 33h28"></path></svg>',
+        description: 'Dubai has become a hub for global capital, with more than 800 family offices now established in DIFC. Gulf Alternatives provides international investors with trusted local access to opportunities in Dubai\'s commercial real estate market.',
+        supportImage: '../assets/fitness-night.jpg',
+        supportAlt: 'Interior view of a Dubai commercial destination',
+        mainImage: '../assets/creative-park-hero.avif',
+        mainAlt: 'Dubai Creative Park architectural environment'
+      },
+      {
+        title: 'Scale',
+        icon: '<svg viewBox="0 0 48 48"><path d="m24 5 17 10-17 10L7 15 24 5Z"></path><path d="m7 24 17 10 17-10"></path><path d="m7 33 17 10 17-10"></path></svg>',
+        description: 'Dubai\'s commercial market offers unmatched liquidity, with $500M+ in daily real estate transactions. This depth allows us to execute strategies at scale while maintaining flexibility across market cycles.',
+        supportImage: '../assets/fitness-day.png',
+        supportAlt: 'Wellness and fitness environment in Dubai',
+        mainImage: '../assets/fitness-night.jpg',
+        mainAlt: 'Specialized commercial interior in Dubai'
+      },
+      {
+        title: 'Future proof assets',
+        icon: '<svg viewBox="0 0 48 48"><path d="M24 5 28 19 43 24 28 29 24 43 20 29 5 24l15-5 4-14Z"></path><circle cx="24" cy="24" r="3" fill="currentColor"></circle></svg>',
+        description: 'ESG-compliant, smart-infrastructure-ready assets aligned with AI, fintech and next generation tenants, securing long-term relevance in Dubai\'s evolving economy.',
+        supportImage: '../assets/creative-park-hero.avif',
+        supportAlt: 'Dubai Creative Park landscape and architecture',
+        mainImage: '../assets/creative-park-hero.avif',
+        mainAlt: 'Commercial destination rendering in Dubai'
+      }
+    ];
+    let approachSwapTimer;
+
+    const setApproach = (index) => {
+      if (!approachRows.length || !approachCopy || !approachIcon || !approachDescription || !approachSupport || !approachMain) return;
+
+      const item = approachItems[index] || approachItems[0];
+      approachRows.forEach((row, rowIndex) => {
+        const active = rowIndex === index;
+        row.classList.toggle('is-active', active);
+        row.setAttribute('aria-pressed', String(active));
+      });
+
+      approachCopy.classList.add('is-changing');
+      approachSupport.parentElement.classList.add('is-changing');
+      approachMain.parentElement.classList.add('is-changing');
+      window.clearTimeout(approachSwapTimer);
+      approachSwapTimer = window.setTimeout(() => {
+        approachIcon.innerHTML = item.icon;
+        approachDescription.textContent = item.description;
+        approachSupport.src = item.supportImage;
+        approachSupport.alt = item.supportAlt;
+        approachMain.src = item.mainImage;
+        approachMain.alt = item.mainAlt;
+        approachCopy.classList.remove('is-changing');
+        approachSupport.parentElement.classList.remove('is-changing');
+        approachMain.parentElement.classList.remove('is-changing');
+      }, reducedMotion ? 0 : 180);
+    };
+
+    approachRows.forEach((row) => {
+      row.addEventListener('click', () => setApproach(Number(row.dataset.approachIndex)));
+    });
+
+    const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+    const smoothstep = (value) => value * value * (3 - 2 * value);
+    const sectionProgress = (element) => {
+      const range = Math.max(1, element.offsetHeight - window.innerHeight);
+      return clamp(-element.getBoundingClientRect().top / range);
+    };
+
+    const renderHero = () => {
+      if (!hero || !heroPin || reducedMotion) return;
+
+      const heroProgress = sectionProgress(hero);
+      const cropProgress = clamp(heroProgress / 0.6);
+      const lightProgress = clamp((heroProgress - 0.55) / 0.45);
+      heroPin.style.setProperty('--hero-crop', cropProgress.toFixed(4));
+      heroPin.style.setProperty('--hero-light', lightProgress.toFixed(4));
+    };
+
+    const renderOurStrategies = () => {
+      if (!ourStrategies || !ourStrategyCards.length || reducedMotion) return;
+
+      const targetProgress = sectionProgress(ourStrategies);
+      strategyProgress += (targetProgress - strategyProgress) * 0.14;
+      if (Math.abs(targetProgress - strategyProgress) < 0.0005) strategyProgress = targetProgress;
+      const storyProgress = strategyProgress;
+      const cardTravel = 1 / ourStrategyCards.length;
+
+      ourStrategyCards.forEach((card, index) => {
+        const localProgress = (storyProgress - index * cardTravel) / cardTravel;
+        const travelProgress = smoothstep(clamp(localProgress));
+        const translateY = 165 - 385 * travelProgress;
+
+        card.style.zIndex = String(index + 1);
+        card.style.transform = `translate3d(-50%, calc(-50% + ${translateY}%), 0)`;
+      });
+
+      if (Math.abs(targetProgress - strategyProgress) > 0.0005) window.requestAnimationFrame(requestScrollRender);
+    };
+
+    const requestScrollRender = () => {
+      if (framePending) return;
+      framePending = true;
+      window.requestAnimationFrame(() => {
+        framePending = false;
+        renderHero();
+        renderOurStrategies();
+      });
+    };
+
+    if (!reducedMotion && (hero || ourStrategyCards.length)) {
+      document.addEventListener('scroll', requestScrollRender, { passive: true });
+      window.addEventListener('resize', requestScrollRender, { passive: true });
+      requestScrollRender();
+    }
+  </script>
+
+  <!-- ===== scale-grid script, verbatim from scalegrid-6480796b.html ===== -->
+  <script>
+    document.querySelectorAll('.js-scale-grid').forEach(root => {
+      const content = root.querySelector('.js-scale');
+      const ref = root.querySelector('.js-scale-ref');
+      const HOLD_IN = 0.26, RUN = 0.53;          // dwell zoomed-out, then zoom over 53% of the scroll
+      let cur = 0, max = 1, running = false;
+      const clamp = v => v < 0 ? 0 : v > 1 ? 1 : v;
+
+      const measure = () => {
+        const r = ref.getBoundingClientRect(), s = cur ? 1 + cur * (max - 1) : 1;
+        max = Math.max(innerWidth / (r.width / s), innerHeight / (r.height / s)); // hero covers viewport
+      };
+
+      const frame = () => {
+        const box = root.getBoundingClientRect();
+        const raw = clamp(-box.top / (root.offsetHeight - innerHeight));
+        const target = clamp((raw - HOLD_IN) / RUN);
+        cur += (target - cur) * 0.12;                                  // smoothing
+        if (Math.abs(target - cur) < 0.0005) cur = target;
+        content.style.setProperty('--s', 1 + cur * (max - 1));
+        content.style.setProperty('--img', 1.5 - 0.5 * cur);
+        running = Math.abs(target - cur) > 0.0001 || (box.top < innerHeight && box.bottom > 0);
+        if (running) requestAnimationFrame(frame);
+      };
+      const kick = () => { if (!running) { running = true; requestAnimationFrame(frame); } };
+
+      if (matchMedia('(min-width:650px)').matches && !matchMedia('(prefers-reduced-motion:reduce)').matches) {
+        addEventListener('resize', () => { measure(); kick(); });
+        addEventListener('scroll', kick, { passive: true });
+        measure(); kick();
+      }
+    });
+  </script>
+</body>
+</html>

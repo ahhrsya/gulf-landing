@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Concept B for Dubai Creative Park, an immersive wellness and fitness destination in Dubai.">
+  <title>Dubai Creative Park | Concept B</title>
+  <link rel="preload" href="assets/creative-park-hero.avif" as="image" type="image/avif">
+  <style>
+    @font-face {
+      font-family: "Guardian Sans";
+      src: url("assets/fonts/GuardianSansRegular.otf") format("opentype");
+      font-weight: 400;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Guardian Sans";
+      src: url("assets/fonts/GuardianSansSemibold.otf") format("opentype");
+      font-weight: 600;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Season Serif";
+      src: url("assets/fonts/SeasonSerifMedium.otf") format("opentype");
+      font-weight: 500;
+      font-display: swap;
+    }
+
+    :root {
+      --background: #101010;
+      --surface: #1a1716;
+      --surface-soft: #151313;
+      --border: rgba(243, 233, 227, 0.16);
+      --text: #f3e9e3;
+      --muted: #bcaea7;
+      --accent: #d9a6af;
+      --accent-dim: rgba(128, 27, 43, 0.22);
+      --ink: #101010;
+      --container: min(1320px, calc(100vw - 56px));
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: "Guardian Sans", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      text-rendering: optimizeLegibility;
+    }
+
+    img { display: block; max-width: 100%; }
+    a { color: inherit; }
+    button, input, select, textarea { font: inherit; }
+
+    :focus-visible {
+      outline: 3px solid rgba(217, 166, 175, 0.65);
+      outline-offset: 3px;
+    }
+
+    .container { width: var(--container); margin-inline: auto; }
+    .serif { font-family: "Season Serif", Georgia, serif; font-weight: 500; }
+
+    .hero {
+      position: relative;
+      min-height: 100dvh;
+      isolation: isolate;
+      overflow: hidden;
+      display: grid;
+      align-content: space-between;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(16, 16, 16, 0.76) 0%, rgba(16, 16, 16, 0.08) 39%, rgba(16, 16, 16, 0.9) 100%),
+        url("assets/creative-park-hero.avif") center / cover no-repeat;
+      z-index: -2;
+      transform: scale(1.025);
+      animation: settle 1600ms cubic-bezier(.16, 1, .3, 1) forwards;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(16, 16, 16, 0.64), transparent 65%);
+      z-index: -1;
+    }
+
+    @keyframes settle { to { transform: scale(1); } }
+
+    .site-header { padding-top: 22px; }
+
+    .nav {
+      min-height: 64px;
+      padding: 10px 12px 10px 18px;
+      border: 1px solid rgba(243, 233, 227, 0.26);
+      background: rgba(16, 16, 16, 0.44);
+      backdrop-filter: blur(18px);
+      display: grid;
+      grid-template-columns: 180px 1fr auto;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .brand img { width: 144px; }
+    .nav-links { display: flex; justify-content: center; gap: 28px; font-size: 14px; }
+    .nav-links a { text-decoration: none; color: #f3e9e3; }
+    .nav-links a:hover { color: var(--accent); }
+
+    .button {
+      min-height: 45px;
+      padding: 11px 18px;
+      border: 1px solid var(--accent);
+      border-radius: 0;
+      background: var(--accent);
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: transform 180ms ease, background-color 180ms ease;
+      font-weight: 600;
+    }
+
+    .button:hover { background: #e6bdc4; }
+    .button:active { transform: translateY(1px); }
+    .button.ghost { background: rgba(16, 16, 16, 0.5); color: var(--text); border-color: rgba(243, 233, 227, 0.4); }
+    .button.ghost:hover { background: rgba(16, 16, 16, 0.8); }
+    .button:disabled { cursor: wait; opacity: 0.68; }
+
+    .hero-copy {
+      padding: 80px 0 40px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.45fr);
+      gap: 40px;
+      align-items: end;
+    }
+
+    .eyebrow {
+      margin: 0 0 20px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      max-width: 12ch;
+      margin-bottom: 0;
+      font-size: clamp(64px, 7.6vw, 122px);
+      line-height: 0.82;
+      letter-spacing: -0.06em;
+    }
+
+    .hero-support { padding-bottom: 10px; }
+    .hero-support p { max-width: 35ch; color: #d9cec8; font-size: 18px; }
+    .button-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .hero-foot {
+      border-top: 1px solid rgba(243, 233, 227, 0.28);
+      padding: 20px 0 26px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      color: #d9cec8;
+      font-size: 13px;
+    }
+
+    .section { padding: 132px 0; }
+
+    .intro {
+      display: grid;
+      grid-template-columns: 0.55fr 1.45fr;
+      gap: 64px;
+      align-items: start;
+    }
+
+    h2 {
+      margin-bottom: 24px;
+      font-size: clamp(52px, 6.5vw, 94px);
+      line-height: 0.92;
+      letter-spacing: -0.045em;
+    }
+
+    .intro h2 { max-width: 14ch; }
+    .intro-copy { max-width: 52ch; margin-top: 18px; color: var(--muted); font-size: 20px; }
+
+    .day-story { border-top: 1px solid var(--border); }
+
+    .story-chapter {
+      display: grid;
+      grid-template-columns: 0.76fr 1.24fr;
+      min-height: 74vh;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .story-chapter:nth-child(even) { grid-template-columns: 1.24fr 0.76fr; }
+    .story-chapter:nth-child(even) .chapter-media { order: -1; }
+
+    .chapter-copy {
+      padding: clamp(46px, 7vw, 110px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .chapter-copy h3 { max-width: 9ch; font-size: clamp(44px, 5vw, 76px); line-height: 0.95; letter-spacing: -0.04em; }
+    .chapter-copy p { max-width: 40ch; margin-bottom: 0; color: var(--muted); font-size: 18px; }
+    .chapter-media { overflow: hidden; min-height: 560px; }
+    .chapter-media img { width: 100%; height: 100%; object-fit: cover; transition: transform 900ms cubic-bezier(.16, 1, .3, 1); }
+    .story-chapter:hover .chapter-media img { transform: scale(1.025); }
+
+    .scale-section {
+      min-height: 86vh;
+      display: grid;
+      align-items: center;
+      background: var(--surface-soft);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .scale-head {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 64px;
+      align-items: end;
+    }
+
+    .scale-number {
+      display: block;
+      font-size: clamp(92px, 16vw, 250px);
+      line-height: 0.72;
+      letter-spacing: -0.075em;
+      color: var(--accent);
+    }
+
+    .scale-copy h2 { max-width: 9ch; }
+    .scale-copy p { color: var(--muted); max-width: 38ch; }
+
+    .balance {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      margin-top: 84px;
+      border: 1px solid var(--border);
+    }
+
+    .balance-part { min-height: 260px; padding: 34px; display: flex; flex-direction: column; justify-content: space-between; }
+    .balance-part + .balance-part { border-left: 1px solid var(--border); background: var(--accent-dim); }
+    .balance-value { font-size: clamp(54px, 7vw, 96px); line-height: 1; letter-spacing: -0.05em; }
+    .balance-part p { max-width: 29ch; margin-bottom: 0; color: var(--muted); }
+
+    .market-stage { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .market-stage-grid { display: grid; grid-template-columns: 0.7fr 1.3fr; gap: 84px; align-items: start; }
+    .market-stage h2 { max-width: 9ch; }
+    .market-stage-copy { max-width: 44ch; color: var(--muted); font-size: 18px; }
+    .market-stage-list { border-top: 1px solid var(--border); }
+    .market-stage-item { display: grid; grid-template-columns: 0.4fr 1.6fr; gap: 32px; padding: 28px 0; border-bottom: 1px solid var(--border); }
+    .market-stage-item strong { font-size: clamp(30px, 4.5vw, 58px); line-height: 1; color: var(--accent); letter-spacing: -0.05em; }
+    .market-stage-item h3 { margin-bottom: 7px; font-size: 22px; }
+    .market-stage-item p { margin-bottom: 0; color: var(--muted); }
+    .source-link { display: inline-block; margin-top: 22px; color: var(--accent); font-size: 13px; text-underline-offset: 4px; }
+
+    .ecosystem-head {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 64px;
+      align-items: end;
+      margin-bottom: 74px;
+    }
+
+    .ecosystem-head h2 { max-width: 10ch; }
+    .ecosystem-head p { color: var(--muted); max-width: 45ch; }
+
+    .role-list { border-top: 1px solid var(--border); }
+
+    .role {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.7fr) 1.1fr auto;
+      gap: 48px;
+      align-items: center;
+      padding: 32px 0;
+      border-bottom: 1px solid var(--border);
+      transition: color 180ms ease, padding 220ms cubic-bezier(.16, 1, .3, 1);
+    }
+
+    .role:hover { color: var(--accent); padding-left: 12px; }
+    .role h3 { margin-bottom: 0; font-size: clamp(28px, 3.2vw, 46px); font-weight: 400; }
+    .role p { margin-bottom: 0; color: var(--muted); max-width: 48ch; }
+    .role span { color: var(--accent); font-size: 24px; }
+
+    .difference {
+      position: relative;
+      min-height: 82vh;
+      display: grid;
+      align-items: end;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .difference::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(16, 16, 16, 0.18), rgba(16, 16, 16, 0.94)),
+        url("assets/creative-park-hero.avif") center / cover no-repeat;
+      z-index: -1;
+    }
+
+    .difference-copy { padding-bottom: 74px; }
+    .difference h2 { max-width: 12ch; }
+    .difference p { max-width: 52ch; color: #ded2cc; font-size: 19px; }
+
+    .decision-grid {
+      display: grid;
+      grid-template-columns: 0.78fr 1.22fr;
+      gap: 84px;
+      align-items: start;
+    }
+
+    .decision-list { border-top: 1px solid var(--border); }
+    .decision-item { padding: 28px 0; border-bottom: 1px solid var(--border); }
+    .decision-item h3 { margin-bottom: 8px; font-size: 26px; }
+    .decision-item p { margin-bottom: 0; color: var(--muted); max-width: 48ch; }
+
+    .platform-shell { padding: clamp(40px, 7vw, 94px); border: 1px solid var(--border); background: var(--surface-soft); }
+    .platform-head { display: grid; grid-template-columns: 0.78fr 1.22fr; gap: 80px; margin-bottom: 70px; }
+    .platform-head h2 { max-width: 10ch; }
+    .platform-head > div:last-child > p { max-width: 48ch; color: var(--muted); font-size: 18px; }
+    .platform-pillars { border-top: 1px solid var(--border); }
+    .platform-pillar { display: grid; grid-template-columns: 0.55fr 1.45fr; gap: 30px; padding: 24px 0; border-bottom: 1px solid var(--border); }
+    .platform-pillar h3, .platform-pillar p { margin-bottom: 0; }
+    .platform-pillar p { color: var(--muted); }
+    .platform-proof { display: grid; grid-template-columns: 1.35fr 0.65fr 0.65fr; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .platform-proof > div { padding: 28px 28px 30px 0; }
+    .platform-proof > div + div { padding-left: 28px; border-left: 1px solid var(--border); }
+    .platform-proof strong { display: block; font-size: clamp(34px, 5vw, 68px); line-height: 1; letter-spacing: -0.05em; color: var(--accent); }
+    .platform-proof span { display: block; margin-top: 10px; color: var(--muted); font-size: 14px; }
+    .strategy-index { display: grid; grid-template-columns: 1fr 1fr; margin-top: 56px; border-top: 1px solid var(--border); }
+    .strategy-index article { padding: 24px 30px 24px 0; border-bottom: 1px solid var(--border); }
+    .strategy-index article:nth-child(even) { padding-left: 30px; border-left: 1px solid var(--border); }
+    .strategy-index h3 { margin-bottom: 7px; }
+    .strategy-index p { margin-bottom: 0; color: var(--muted); }
+    .venue-line { display: flex; gap: 10px 24px; flex-wrap: wrap; margin-top: 30px; color: var(--muted); font-size: 13px; }
+
+    .location-callout {
+      padding: clamp(38px, 7vw, 96px);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      display: grid;
+      grid-template-columns: 1.35fr 0.65fr;
+      gap: 64px;
+      align-items: end;
+    }
+
+    .location-callout h2 { max-width: 10ch; }
+    .location-callout .button-row { justify-content: flex-end; }
+
+    .faq-grid {
+      display: grid;
+      grid-template-columns: 0.64fr 1.36fr;
+      gap: 84px;
+    }
+
+    .faq-list { border-top: 1px solid var(--border); }
+    details { border-bottom: 1px solid var(--border); }
+    summary { padding: 27px 46px 27px 0; font-size: 20px; cursor: pointer; list-style: none; position: relative; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; position: absolute; right: 0; top: 26px; color: var(--accent); }
+    details[open] summary::after { content: "−"; }
+    details p { max-width: 62ch; padding: 0 48px 26px 0; color: var(--muted); }
+
+    .inquiry-grid {
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 80px;
+      padding: clamp(42px, 7vw, 96px);
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
+    }
+
+    .inquiry-copy p { max-width: 38ch; color: var(--muted); }
+    form { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .field { display: grid; gap: 8px; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: 13px; font-weight: 600; color: #e2d7d1; }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 0;
+      background: var(--surface);
+      color: var(--text);
+      padding: 14px 15px;
+    }
+
+    select option { background: var(--surface); }
+    textarea { min-height: 128px; resize: vertical; }
+    form .button { justify-self: start; }
+    [data-form-status] { grid-column: 1 / -1; min-height: 24px; margin: 0; color: var(--muted); font-size: 14px; }
+    [data-form-status][data-state="error"] { color: #f3a3a3; }
+    [data-form-status][data-state="success"] { color: var(--accent); }
+
+    footer { padding: 78px 0 30px; }
+    .footer-main { display: grid; grid-template-columns: 1fr auto; gap: 64px; padding-bottom: 60px; border-bottom: 1px solid var(--border); }
+    .footer-brand { display: flex; align-items: center; gap: 28px; }
+    .footer-brand .gulf { width: 144px; }
+    .footer-brand .dcp { width: 84px; filter: invert(1); }
+    .footer-links { display: flex; gap: 28px; flex-wrap: wrap; }
+    .footer-links a { text-decoration: none; color: var(--muted); }
+    .footer-meta { display: flex; justify-content: space-between; gap: 24px; padding-top: 24px; color: var(--muted); font-size: 13px; }
+
+    .reveal { opacity: 0; transform: translateY(26px); transition: opacity 760ms cubic-bezier(.16, 1, .3, 1), transform 760ms cubic-bezier(.16, 1, .3, 1); }
+    .reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 920px) {
+      :root { --container: min(100% - 32px, 760px); }
+      .nav { grid-template-columns: 1fr auto; }
+      .nav-links { display: none; }
+      .hero-copy, .intro, .scale-head, .market-stage-grid, .ecosystem-head, .decision-grid, .platform-head, .location-callout, .faq-grid, .inquiry-grid { grid-template-columns: 1fr; gap: 36px; }
+      .hero-copy { padding-top: 110px; }
+      .hero-support { max-width: 470px; }
+      .story-chapter, .story-chapter:nth-child(even) { grid-template-columns: 1fr; }
+      .story-chapter:nth-child(even) .chapter-media { order: initial; }
+      .story-chapter { min-height: auto; }
+      .chapter-copy { min-height: 520px; }
+      .chapter-media { min-height: 520px; }
+      .section { padding: 96px 0; }
+      .location-callout .button-row { justify-content: flex-start; }
+      .platform-proof { grid-template-columns: 1fr 1fr; }
+      .platform-proof > div:first-child { grid-column: 1 / -1; border-bottom: 1px solid var(--border); }
+      .platform-proof > div:nth-child(2) { padding-left: 0; border-left: 0; }
+    }
+
+    @media (max-width: 640px) {
+      .site-header { padding-top: 12px; }
+      .nav { min-height: 58px; padding-left: 14px; }
+      .nav .button { padding-inline: 13px; }
+      .hero-copy { padding-top: 92px; }
+      h1 { font-size: clamp(66px, 20vw, 92px); }
+      .hero-foot { grid-template-columns: 1fr; }
+      .balance, .market-stage-item, .platform-proof, .strategy-index, form, .role { grid-template-columns: 1fr; }
+      .balance-part + .balance-part { border-left: 0; border-top: 1px solid var(--border); }
+      .role { gap: 12px; }
+      .role span { display: none; }
+      .field.full, [data-form-status] { grid-column: auto; }
+      .platform-proof > div, .platform-proof > div + div { grid-column: auto; padding: 24px 0; border-left: 0; border-bottom: 1px solid var(--border); }
+      .strategy-index article:nth-child(even) { padding-left: 0; border-left: 0; }
+      .footer-main, .footer-meta { grid-template-columns: 1fr; display: grid; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      .reveal { opacity: 1; transform: none; }
+      .hero::before { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <section class="hero" id="top" aria-labelledby="hero-title">
+    <header class="site-header container">
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="#top" aria-label="Gulfalts home">
+          <img src="assets/gulfalts-white.svg" alt="Gulfalts">
+        </a>
+        <div class="nav-links">
+          <a href="#journey">The journey</a>
+          <a href="#market">Market thesis</a>
+          <a href="#operators">For operators</a>
+          <a href="#firm">Gulfalts</a>
+          <a href="#location">Location</a>
+        </div>
+        <a class="button" href="#inquiry">Leasing inquiry <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
+
+    <div class="hero-copy container">
+      <div>
+        <p class="eyebrow">Dubai Creative Park</p>
+        <h1 id="hero-title" class="serif">A place made to move with you.</h1>
+      </div>
+      <div class="hero-support">
+        <p>Wellness, fitness, sport and food meet inside one walkable commercial ecosystem.</p>
+        <div class="button-row">
+          <a class="button" href="#journey">Enter the story</a>
+          <a class="button ghost" href="#inquiry">Discuss a space</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-foot container">
+      <span>500,000 sq ft wellness and fitness destination</span>
+      <span>Dubai, UAE</span>
+    </div>
+  </section>
+
+  <main>
+    <section class="section container reveal">
+      <div class="intro">
+        <p class="eyebrow">The premise</p>
+        <div>
+          <h2 class="serif">The best commercial destinations become part of daily life.</h2>
+          <p class="intro-copy">Creative Park is built around how people want to spend their time: moving, recovering, meeting and staying connected to nature.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="day-story" id="journey" aria-label="A day at Creative Park">
+      <article class="story-chapter">
+        <div class="chapter-copy reveal">
+          <div>
+            <p class="eyebrow">The day begins</p>
+            <h3 class="serif">Movement creates the first reason to arrive.</h3>
+          </div>
+          <p>Gyms, boutique studios, coaching spaces and sports operators bring energy into the destination from the start.</p>
+        </div>
+        <figure class="chapter-media">
+          <img src="assets/fitness-day.png" alt="Modern fitness space with an indoor running track" width="1080" height="589" loading="lazy">
+        </figure>
+      </article>
+
+      <article class="story-chapter">
+        <div class="chapter-copy reveal">
+          <div>
+            <p class="eyebrow">The visit expands</p>
+            <h3 class="serif">Recovery turns activity into wellbeing.</h3>
+          </div>
+          <p>Health, therapy, beauty and holistic wellness concepts give people a natural next place to go.</p>
+        </div>
+        <figure class="chapter-media">
+          <img src="assets/creative-park-hero.avif" alt="Shaded green walkway inside Dubai Creative Park" width="2000" height="1001" loading="lazy">
+        </figure>
+      </article>
+
+      <article class="story-chapter">
+        <div class="chapter-copy reveal">
+          <div>
+            <p class="eyebrow">The place stays active</p>
+            <h3 class="serif">Food and community carry the day forward.</h3>
+          </div>
+          <p>Curated cafés, lifestyle businesses and open landscape create a destination that remains social beyond the workout.</p>
+        </div>
+        <figure class="chapter-media">
+          <img src="assets/fitness-night.jpg" alt="Fitness facility connected to landscaped space after sunset" width="1376" height="768" loading="lazy">
+        </figure>
+      </article>
+    </section>
+
+    <section class="scale-section section" id="scale">
+      <div class="container">
+        <div class="scale-head reveal">
+          <span class="scale-number">500,000</span>
+          <div class="scale-copy">
+            <p class="eyebrow">Room for an ecosystem</p>
+            <h2 class="serif">Square feet with one clear purpose.</h2>
+            <p>Dubai's first wellness and fitness destination of its kind, managed and developed as one integrated venue.</p>
+          </div>
+        </div>
+        <div class="balance reveal" aria-label="Built space and landscape balance">
+          <div class="balance-part">
+            <span class="balance-value">50%</span>
+            <p>Built environment for operators, experiences and everyday services.</p>
+          </div>
+          <div class="balance-part">
+            <span class="balance-value">50%</span>
+            <p>Green landscape supporting walkability, nature and time outdoors.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section market-stage" id="market">
+      <div class="container market-stage-grid">
+        <div class="reveal">
+          <p class="eyebrow">Why Dubai, why now</p>
+          <h2 class="serif">The place is shaped by a larger movement.</h2>
+          <p class="market-stage-copy">Population growth, foreign capital and institutional demand are changing what Dubai's commercial market needs next.</p>
+          <a class="source-link" href="https://www.gulfalts.com/thesis" target="_blank" rel="noreferrer">Read the full thesis ↗</a>
+        </div>
+        <div class="market-stage-list reveal">
+          <article class="market-stage-item">
+            <strong>FDI</strong>
+            <div><h3>Capital continues to arrive</h3><p>Global investment and talent strengthen demand for premium, institutional-grade commercial facilities.</p></div>
+          </article>
+          <article class="market-stage-item">
+            <strong>$500M+</strong>
+            <div><h3>Daily market liquidity</h3><p>More than $500 million of Dubai property changed hands daily in 2024.</p></div>
+          </article>
+          <article class="market-stage-item">
+            <strong>15%+</strong>
+            <div><h3>Commercial market potential</h3><p>Gulfalts reports achievable net rental yields above 15% on prime Dubai industrial assets. This is market context, not a Creative Park return projection.</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container" id="operators">
+      <div class="ecosystem-head reveal">
+        <div>
+          <p class="eyebrow">A curated commercial mix</p>
+          <h2 class="serif">Five kinds of operator. One shared destination.</h2>
+        </div>
+        <p>The value comes from adjacency. Each concept adds another reason to visit and supports the wider experience of Creative Park.</p>
+      </div>
+
+      <div class="role-list">
+        <article class="role reveal">
+          <h3 class="serif">Fitness brands</h3>
+          <p>Gyms, boutique studios, personal training and fitness-focused operators.</p>
+          <span aria-hidden="true">↗</span>
+        </article>
+        <article class="role reveal">
+          <h3 class="serif">Sports operators</h3>
+          <p>Activity-led businesses, coaching spaces and participation-driven concepts.</p>
+          <span aria-hidden="true">↗</span>
+        </article>
+        <article class="role reveal">
+          <h3 class="serif">Wellness concepts</h3>
+          <p>Recovery, beauty, health, therapy and holistic wellness experiences.</p>
+          <span aria-hidden="true">↗</span>
+        </article>
+        <article class="role reveal">
+          <h3 class="serif">Curated F&amp;B</h3>
+          <p>Cafés and food concepts aligned with an active and social audience.</p>
+          <span aria-hidden="true">↗</span>
+        </article>
+        <article class="role reveal">
+          <h3 class="serif">Lifestyle businesses</h3>
+          <p>Brands designed for a walkable and experience-led commercial setting.</p>
+          <span aria-hidden="true">↗</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="difference">
+      <div class="difference-copy container reveal">
+        <p class="eyebrow">The difference</p>
+        <h2 class="serif">Not another standard commercial development.</h2>
+        <p>Creative Park is destination-led. Its focus on nature, community and everyday experience gives operators a more meaningful setting for growth.</p>
+      </div>
+    </section>
+
+    <section class="section container">
+      <div class="decision-grid">
+        <div class="reveal">
+          <p class="eyebrow">Why operators belong here</p>
+          <h2 class="serif">A place with a point of view.</h2>
+        </div>
+        <div class="decision-list">
+          <article class="decision-item reveal">
+            <h3>Purposeful adjacency</h3>
+            <p>Operators join a complementary mix across fitness, wellness, sport, food and lifestyle.</p>
+          </article>
+          <article class="decision-item reveal">
+            <h3>More reasons to stay</h3>
+            <p>Movement, recovery, social time and nature work together within one visit.</p>
+          </article>
+          <article class="decision-item reveal">
+            <h3>An everyday destination</h3>
+            <p>Walkability and community make Creative Park relevant beyond a single appointment or transaction.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container reveal" id="firm">
+      <div class="platform-shell">
+        <div class="platform-head">
+          <div>
+            <p class="eyebrow">The Gulfalts edge</p>
+            <h2 class="serif">A focused platform behind the place.</h2>
+          </div>
+          <div>
+            <p>Creative Park sits inside an asset-led commercial platform built around structural growth and long-term tenant alignment.</p>
+            <div class="platform-pillars">
+              <article class="platform-pillar"><h3>Conviction</h3><p>Local expertise identifies durable sectors and the spaces they need.</p></article>
+              <article class="platform-pillar"><h3>Connectivity</h3><p>Trusted access connects global capital and strategic partners to Dubai.</p></article>
+              <article class="platform-pillar"><h3>Scale</h3><p>Market depth and operating capability support disciplined execution.</p></article>
+            </div>
+          </div>
+        </div>
+
+        <div class="platform-proof" aria-label="Gulfalts portfolio metrics">
+          <div><strong>1,060,000</strong><span>sq ft Net Leasable Area</span></div>
+          <div><strong>2021</strong><span>Portfolio assembled since</span></div>
+          <div><strong>4</strong><span>Focused commercial venues</span></div>
+        </div>
+
+        <div class="strategy-index" aria-label="Gulfalts strategy platform">
+          <article><h3>Core</h3><p>Stabilized assets with durable income and long-term tenants.</p></article>
+          <article><h3>Opportunistic</h3><p>Selective development and market-dislocation opportunities.</p></article>
+          <article><h3>Capital</h3><p>Institutional solutions centered on governance, dollarized income and liquidity.</p></article>
+          <article><h3>Future Proof Assets</h3><p>Smart-infrastructure-ready assets for next-generation tenants. Project-level ESG claims require separate evidence.</p></article>
+        </div>
+        <div class="venue-line" aria-label="Gulfalts venues">
+          <span>Dubai Fintech District</span><span>Dubai Creative Park</span><span>V8 District</span><span>Motor Garten</span>
+        </div>
+        <a class="source-link" href="https://www.gulfalts.com/" target="_blank" rel="noreferrer">Explore the Gulfalts portfolio ↗</a>
+      </div>
+    </section>
+
+    <section class="section container reveal" id="location">
+      <div class="location-callout">
+        <div>
+          <p class="eyebrow">Dubai, UAE</p>
+          <h2 class="serif">Put your brand inside the next chapter.</h2>
+        </div>
+        <div class="button-row">
+          <a class="button" href="https://maps.app.goo.gl/z4Asg5HY1MbpcqpV9" target="_blank" rel="noreferrer">View location</a>
+          <a class="button ghost" href="#inquiry">Request details</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container">
+      <div class="faq-grid">
+        <div class="reveal">
+          <p class="eyebrow">Common questions</p>
+          <h2 class="serif">A clearer view of the opportunity.</h2>
+        </div>
+        <div class="faq-list reveal">
+          <details>
+            <summary>What kind of venue is Creative Park?</summary>
+            <p>It is a wellness and fitness-led commercial destination bringing sports, wellbeing and curated lifestyle concepts together.</p>
+          </details>
+          <details>
+            <summary>Who is the destination best suited for?</summary>
+            <p>It is intended for wellness brands, fitness operators, sports concepts, curated cafés and lifestyle-driven businesses.</p>
+          </details>
+          <details>
+            <summary>Is Creative Park only for fitness brands?</summary>
+            <p>No. The concept extends into wellness, lifestyle, community and carefully selected food and beverage brands.</p>
+          </details>
+          <details>
+            <summary>What makes the setting different?</summary>
+            <p>It gives greater priority to walkability, green landscape, community and the overall experience of spending time there.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container" id="inquiry">
+      <div class="inquiry-grid reveal">
+        <div class="inquiry-copy">
+          <p class="eyebrow">Leasing inquiry</p>
+          <h2 class="serif">Tell us what you want to bring to the park.</h2>
+          <p>Share the concept, the audience and the role your brand could play within the destination.</p>
+        </div>
+        <form data-prototype-form novalidate>
+          <div class="field">
+            <label for="b-name">Name</label>
+            <input id="b-name" name="name" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label for="b-company">Company</label>
+            <input id="b-company" name="company" autocomplete="organization" required>
+          </div>
+          <div class="field">
+            <label for="b-email">Work email</label>
+            <input id="b-email" name="email" type="email" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="b-type">Inquiry type</label>
+            <select id="b-type" name="type" required>
+              <option value="">Choose one</option>
+              <option>Leasing</option>
+              <option>Investment Solutions</option>
+              <option>Development Partnership</option>
+              <option>Land Opportunity</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label for="b-message">Describe the concept</label>
+            <textarea id="b-message" name="message" required></textarea>
+          </div>
+          <button class="button" type="submit">Prepare inquiry</button>
+          <p data-form-status aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container">
+    <div class="footer-main">
+      <div class="footer-brand">
+        <img class="gulf" src="assets/gulfalts-white.svg" alt="Gulfalts">
+        <img class="dcp" src="assets/dcp-logo-black.svg" alt="Dubai Creative Park mark">
+      </div>
+      <div class="footer-links">
+        <a href="#journey">The journey</a>
+        <a href="#market">Market thesis</a>
+        <a href="#operators">For operators</a>
+        <a href="#firm">The Firm</a>
+        <a href="#inquiry">Contact</a>
+      </div>
+    </div>
+    <div class="footer-meta">
+      <span>Concept landing page using existing Gulfalts content and assets.</span>
+      <span>© 2026 Gulf Alternatives</span>
+    </div>
+  </footer>
+
+  <script src="assets/site.js"></script>
+</body>
+</html>
