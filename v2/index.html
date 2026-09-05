@@ -258,28 +258,55 @@
     .number-card figure img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.6) brightness(0.85); }
 
     /* ─────────────────────────── projects ─────────────────────────── */
-    .projects { background: var(--ink); }
+    .projects { padding-bottom: 0; background: var(--ink); }
+    .projects-stage { margin: 0 calc(-1 * var(--pad)); }
     .projects-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 80px); align-items: end; margin-bottom: clamp(52px, 8vw, 120px); }
     .projects-head h2 { margin: 0; font-size: clamp(38px, 6vw, 96px); }
     .projects-head .projects-aside { display: grid; justify-items: start; gap: 24px; }
     .projects-head p { max-width: 38ch; margin: 0; color: var(--dim); font-size: clamp(15px, 1.2vw, 18px); }
-    /* asymmetric grid; each card drifts vertically at its own rate on scroll */
-    .project-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: clamp(64px, 10vw, 170px) 22px; }
-    .project-card { display: block; text-decoration: none; }
-    .project-card.one   { grid-column: 1 / 6;  grid-row: 1; }
-    .project-card.two   { grid-column: 7 / 13; grid-row: 1; margin-top: clamp(56px, 10vw, 168px); }
-    .project-card.three { grid-column: 2 / 7;  grid-row: 2; }
-    .project-card.four  { grid-column: 8 / 13; grid-row: 2; margin-top: clamp(40px, 7vw, 118px); }
+    /* scroll swaps the project: the backdrop becomes that venue's own photo
+       and its card cross-fades in, while the split stays pinned. */
+    .projects-stage { position: relative; height: 400vh; }
+    .projects-pin { position: sticky; top: 0; height: 100svh; display: grid; place-items: center; overflow: hidden; }
+    .projects-bg { position: absolute; inset: 0; z-index: 0; background: var(--void); }
+    /* curtain wipe: each layer slides up over the one already showing, and
+       DOM order is the stack order, so scrolling back just slides it down
+       again to uncover the previous one. Layers at or below the active index
+       stay at rest, so there is always something underneath. */
+    .bg-layer {
+      position: absolute; inset: 0; overflow: hidden;
+      transform: translateY(101%);
+      transition: transform 1100ms cubic-bezier(.16, 1, .3, 1);
+      will-change: transform;
+    }
+    .bg-layer.is-revealed { transform: none; }
+    .bg-layer img {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: saturate(0.45) brightness(0.34) blur(2px);
+      transform: translateY(-24%);
+      transition: transform 1100ms cubic-bezier(.16, 1, .3, 1);
+    }
+    .bg-layer.is-revealed img { transform: none; }
 
-    /* polaroid: photo inset in a frame, caption block printed on the mount */
+    .project-cards { position: relative; z-index: 2; display: grid; width: min(400px, 82vw); }
+    .project-card {
+      grid-area: 1 / 1; display: block; text-decoration: none;
+      opacity: 0; transform: translateY(30px); pointer-events: none;
+      transition: opacity 650ms ease, transform 900ms cubic-bezier(.16, 1, .3, 1);
+    }
+    .project-card.is-active { opacity: 1; transform: none; pointer-events: auto; }
+
+    /* polaroid: photo inset in a frame, caption block printed on the mount.
+       Mount is opaque enough to read against the photographic backdrop. */
     .polaroid {
       padding: clamp(10px, 0.9vw, 16px);
       border: 1px solid var(--line);
-      background: rgba(237, 231, 218, 0.07);
+      background: rgba(10, 19, 16, 0.82);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       transition: background 400ms ease, border-color 400ms ease;
-      will-change: transform;
     }
-    .project-card:hover .polaroid { background: rgba(237, 231, 218, 0.12); border-color: rgba(237, 231, 218, 0.26); }
+    .project-card:hover .polaroid { background: rgba(18, 41, 31, 0.9); border-color: rgba(237, 231, 218, 0.3); }
     .polaroid figure { position: relative; margin: 0; overflow: hidden; background: #0b1512; }
     .polaroid img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.6) brightness(0.86); transition: transform 900ms cubic-bezier(.16,1,.3,1), filter 500ms ease; }
     .project-card:hover .polaroid img { transform: scale(1.04); filter: saturate(0.8) brightness(0.98); }
@@ -289,10 +316,15 @@
     .polaroid-plus { display: block; margin-top: clamp(16px, 1.6vw, 26px); color: var(--gold); font-size: 20px; line-height: 1; transition: transform 500ms cubic-bezier(.16,1,.3,1); }
     .project-card:hover .polaroid-plus { transform: rotate(90deg); }
 
-    .project-card.one .polaroid figure   { aspect-ratio: 1 / 1.16; }
-    .project-card.two .polaroid figure   { aspect-ratio: 1.4 / 1; }
-    .project-card.three .polaroid figure { aspect-ratio: 1 / 1.1; }
-    .project-card.four .polaroid figure  { aspect-ratio: 1.32 / 1; }
+    .polaroid figure { aspect-ratio: 1 / 1.06; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .projects-stage { height: auto; }
+      .projects-pin { position: static; height: auto; display: grid; gap: 48px; padding: 0; }
+      .projects-bg { display: none; }
+      .project-cards { grid-auto-flow: row; width: min(400px, 100%); gap: 48px; }
+      .project-card { grid-area: auto; opacity: 1; transform: none; pointer-events: auto; }
+    }
 
     /* ────── what we do: pinned scroll-through slideshow ──────
        scroll advances the slide while the split stays pinned: the copy fades
@@ -302,10 +334,13 @@
 
     .wwd-panel {
       position: relative; z-index: 2;
-      display: grid; grid-template-rows: auto minmax(0, 1fr);
+      display: grid; grid-template-rows: auto auto minmax(0, 1fr);
+      gap: clamp(20px, 3vh, 38px);
       padding: clamp(92px, 13vh, 152px) var(--pad) clamp(38px, 6vh, 68px);
       background: var(--void);
     }
+    .wwd-head .eyebrow { margin-bottom: 12px; }
+    .wwd-head h2 { margin: 0; font-size: clamp(24px, 2.4vw, 38px); }
     .wwd-counter { display: flex; align-items: center; gap: 12px; margin: 0; color: var(--faint); font-size: 12px; letter-spacing: 0.16em; }
     .wwd-counter i { display: block; width: 34px; height: 1px; background: var(--line); font-style: normal; }
     .wwd-counter b { color: var(--gold); font-weight: 400; }
@@ -330,14 +365,23 @@
 
     .wwd-media { position: relative; overflow: hidden; background: #0b1512; }
     .wwd-shot {
-      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-      filter: saturate(0.62) brightness(0.84);
-      opacity: 0; transform: scale(1.06);
-      transition: opacity 800ms ease, transform 1500ms cubic-bezier(.16, 1, .3, 1);
+      position: absolute; inset: 0; overflow: hidden;
+      transform: translateY(101%);
+      transition: transform 1100ms cubic-bezier(.16, 1, .3, 1);
+      will-change: transform;
     }
-    .wwd-shot.is-active { opacity: 1; transform: none; }
+    .wwd-shot.is-revealed { transform: none; }
+    .wwd-shot img {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: saturate(0.62) brightness(0.84);
+      transform: translateY(-24%);
+      transition: transform 1100ms cubic-bezier(.16, 1, .3, 1);
+    }
+    .wwd-shot.is-revealed img { transform: none; }
 
     @media (prefers-reduced-motion: reduce) {
+      .bg-layer, .wwd-shot { position: relative; transform: none; }
+      .bg-layer img, .wwd-shot img { transform: none; }
       .whatwedo { height: auto; }
       .wwd-pin { position: static; height: auto; }
       .wwd-slides { display: grid; }
@@ -507,9 +551,7 @@
       .numbers-grid { grid-template-columns: 1fr; }
       .numbers-grid > :nth-child(n) { margin-top: 0; }
       .projects-head { grid-template-columns: 1fr; }
-      .project-grid { grid-template-columns: 1fr; gap: 40px; }
-      .project-card.one, .project-card.two, .project-card.three, .project-card.four { grid-column: 1; grid-row: auto; margin-top: 0; }
-      .polaroid { transform: none !important; }
+      .projects-stage { height: 360vh; }
       .whatwedo { height: 460vh; }
       .wwd-pin { grid-template-columns: 1fr; grid-template-rows: 42svh minmax(0, 1fr); }
       .wwd-media { grid-row: 1; }
@@ -682,54 +724,68 @@
         </div>
       </div>
 
-      <div class="project-grid">
-        <a class="project-card one" data-reveal href="https://www.gulfalts.com/venue/dubai-creative-park" target="_blank" rel="noreferrer">
-          <div class="polaroid" data-parallax="0.5">
-            <figure><img src="../assets/creative-park.avif" alt="Dubai Creative Park, a wellness and fitness destination"></figure>
-            <div class="polaroid-body">
-              <h3>Dubai Creative Park</h3>
-              <p class="polaroid-meta">Cultural landmark<br>500,000 sq ft<br>Dubai, UAE</p>
-              <span class="polaroid-plus" aria-hidden="true">+</span>
-            </div>
+      <div class="projects-stage">
+        <div class="projects-pin">
+          <div class="projects-bg" aria-hidden="true">
+            <div class="bg-layer is-revealed" data-project-bg><img src="../assets/creative-park-hero.avif" alt=""></div>
+            <div class="bg-layer" data-project-bg><img src="../assets/fintech-district.avif" alt=""></div>
+            <div class="bg-layer" data-project-bg><img src="../assets/v8-district.avif" alt=""></div>
+            <div class="bg-layer" data-project-bg><img src="../assets/motor-garten.avif" alt=""></div>
           </div>
-        </a>
-        <a class="project-card two" data-reveal href="https://www.gulfalts.com/venue/fintech-district" target="_blank" rel="noreferrer">
-          <div class="polaroid" data-parallax="-0.42">
-            <figure><img src="../assets/fintech-district.avif" alt="Dubai Fintech District business park"></figure>
-            <div class="polaroid-body">
-              <h3>Dubai Fintech District</h3>
-              <p class="polaroid-meta">Business park<br>Dubai, UAE</p>
-              <span class="polaroid-plus" aria-hidden="true">+</span>
-            </div>
+          <div class="project-cards">
+            <a class="project-card is-active" data-project-card href="https://www.gulfalts.com/venue/dubai-creative-park" target="_blank" rel="noreferrer">
+              <div class="polaroid">
+                <figure><img src="../assets/creative-park.avif" alt="Dubai Creative Park, a wellness and fitness destination"></figure>
+                <div class="polaroid-body">
+                  <h3>Dubai Creative Park</h3>
+                  <p class="polaroid-meta">Cultural landmark<br>500,000 sq ft<br>Dubai, UAE</p>
+                  <span class="polaroid-plus" aria-hidden="true">+</span>
+                </div>
+              </div>
+            </a>
+            <a class="project-card" data-project-card href="https://www.gulfalts.com/venue/fintech-district" target="_blank" rel="noreferrer">
+              <div class="polaroid">
+                <figure><img src="../assets/fintech-district.avif" alt="Dubai Fintech District business park"></figure>
+                <div class="polaroid-body">
+                  <h3>Dubai Fintech District</h3>
+                  <p class="polaroid-meta">Business park<br>Dubai, UAE</p>
+                  <span class="polaroid-plus" aria-hidden="true">+</span>
+                </div>
+              </div>
+            </a>
+            <a class="project-card" data-project-card href="https://www.gulfalts.com/venue/v8-district" target="_blank" rel="noreferrer">
+              <div class="polaroid">
+                <figure><img src="../assets/v8-district.avif" alt="V8 District automotive commercial facility"></figure>
+                <div class="polaroid-body">
+                  <h3>V8 District</h3>
+                  <p class="polaroid-meta">Specialized commercial facilities<br>Dubai, UAE</p>
+                  <span class="polaroid-plus" aria-hidden="true">+</span>
+                </div>
+              </div>
+            </a>
+            <a class="project-card" data-project-card href="https://www.gulfalts.com/venue/motor-garten" target="_blank" rel="noreferrer">
+              <div class="polaroid">
+                <figure><img src="../assets/motor-garten.avif" alt="Motor Garten automotive commercial facility"></figure>
+                <div class="polaroid-body">
+                  <h3>Motor Garten</h3>
+                  <p class="polaroid-meta">Specialized commercial facilities<br>Dubai, UAE</p>
+                  <span class="polaroid-plus" aria-hidden="true">+</span>
+                </div>
+              </div>
+            </a>
           </div>
-        </a>
-        <a class="project-card three" data-reveal href="https://www.gulfalts.com/venue/v8-district" target="_blank" rel="noreferrer">
-          <div class="polaroid" data-parallax="0.34">
-            <figure><img src="../assets/v8-district.avif" alt="V8 District automotive commercial facility"></figure>
-            <div class="polaroid-body">
-              <h3>V8 District</h3>
-              <p class="polaroid-meta">Specialized commercial facilities<br>Dubai, UAE</p>
-              <span class="polaroid-plus" aria-hidden="true">+</span>
-            </div>
-          </div>
-        </a>
-        <a class="project-card four" data-reveal href="https://www.gulfalts.com/venue/motor-garten" target="_blank" rel="noreferrer">
-          <div class="polaroid" data-parallax="-0.56">
-            <figure><img src="../assets/motor-garten.avif" alt="Motor Garten automotive commercial facility"></figure>
-            <div class="polaroid-body">
-              <h3>Motor Garten</h3>
-              <p class="polaroid-meta">Specialized commercial facilities<br>Dubai, UAE</p>
-              <span class="polaroid-plus" aria-hidden="true">+</span>
-            </div>
-          </div>
-        </a>
+        </div>
       </div>
     </section>
 
     <!-- ══════════ 05 · what we do ══════════ -->
-    <section class="whatwedo" id="what-we-do" aria-label="How we invest">
+    <section class="whatwedo" id="what-we-do" aria-labelledby="what-we-do-title">
       <div class="wwd-pin">
         <div class="wwd-panel">
+          <div class="wwd-head">
+            <p class="eyebrow">What we do</p>
+            <h2 class="display" id="what-we-do-title">How We Invest</h2>
+          </div>
           <p class="wwd-counter"><b data-wwd-current>01</b> <i></i> <span data-wwd-total>04</span></p>
 
           <div class="wwd-slides">
@@ -753,10 +809,10 @@
         </div>
 
         <div class="wwd-media">
-          <img class="wwd-shot is-active" data-wwd-shot src="../assets/creative-park-hero.avif" alt="Dubai Creative Park">
-          <img class="wwd-shot" data-wwd-shot src="../assets/fintech-district.avif" alt="Dubai Fintech District">
-          <img class="wwd-shot" data-wwd-shot src="../assets/v8-district.avif" alt="V8 District">
-          <img class="wwd-shot" data-wwd-shot src="../assets/motor-garten.avif" alt="Motor Garten">
+          <div class="wwd-shot is-revealed" data-wwd-shot><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park"></div>
+          <div class="wwd-shot" data-wwd-shot><img src="../assets/fintech-district.avif" alt="Dubai Fintech District"></div>
+          <div class="wwd-shot" data-wwd-shot><img src="../assets/v8-district.avif" alt="V8 District"></div>
+          <div class="wwd-shot" data-wwd-shot><img src="../assets/motor-garten.avif" alt="Motor Garten"></div>
         </div>
       </div>
     </section>
@@ -1050,21 +1106,24 @@
       render();
     })();
 
-    /* ── project cards drift at their own rate as they cross the viewport ── */
+    /* ── projects: scroll swaps the active venue while the stage stays pinned ── */
     (() => {
-      const items = [...document.querySelectorAll('[data-parallax]')];
-      if (!items.length || reduced) return;
+      const stage = document.querySelector('.projects-stage');
+      const cards = [...document.querySelectorAll('[data-project-card]')];
+      const shots = [...document.querySelectorAll('[data-project-bg]')];
+      if (!stage || !cards.length || reduced) return;
 
-      let pending = false;
+      let index = 0, pending = false;
       const render = () => {
         pending = false;
-        for (const el of items) {
-          const r = el.getBoundingClientRect();
-          if (r.bottom < -200 || r.top > innerHeight + 200) continue;
-          // -0.5…0.5 as the card crosses the viewport, scaled by its own rate
-          const centred = (r.top + r.height / 2 - innerHeight / 2) / innerHeight;
-          el.style.transform = `translate3d(0, ${(centred * el.dataset.parallax * -90).toFixed(1)}px, 0)`;
-        }
+        const range = stage.offsetHeight - innerHeight;
+        if (range <= 0) return;
+        const progress = Math.min(0.9999, Math.max(0, -stage.getBoundingClientRect().top / range));
+        const i = Math.floor(progress * cards.length);
+        if (i === index) return;
+        index = i;
+        cards.forEach((el, k) => el.classList.toggle('is-active', k === i));
+        shots.forEach((el, k) => el.classList.toggle('is-revealed', k <= i));
       };
       addEventListener('scroll', () => { if (!pending) { pending = true; requestAnimationFrame(render); } }, { passive: true });
       addEventListener('resize', render, { passive: true });
@@ -1120,7 +1179,7 @@
         if (i === index) return;
         index = i;
         slides.forEach((el, k) => el.classList.toggle('is-active', k === i));
-        shots.forEach((el, k) => el.classList.toggle('is-active', k === i));
+        shots.forEach((el, k) => el.classList.toggle('is-revealed', k <= i));
         currentEl.textContent = String(i + 1).padStart(2, '0');
       };
       addEventListener('scroll', () => { if (!pending) { pending = true; requestAnimationFrame(render); } }, { passive: true });
