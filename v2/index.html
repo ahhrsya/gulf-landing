@@ -267,43 +267,23 @@
 
     /* ────────────────── selection (horizontal rail) ────────────────── */
     .selection { padding-top: 0; overflow: visible; }
+    /* full-bleed viewport clips the rail so the marquee can't add page scroll */
+    .selection-viewport { overflow: hidden; margin: 0 calc(-1 * var(--pad)); padding-bottom: clamp(28px, 4vw, 56px); }
     .selection-track {
-      display: flex; gap: clamp(18px, 2.6vw, 44px);
-      /* native overflow scrolling + snap — no carousel library needed, the
-         arrows just call scrollBy() on this element. */
-      overflow-x: auto; overscroll-behavior-x: contain;
-      scroll-behavior: smooth;
-      /* full-bleed both sides: the rail runs off each edge of the viewport
-         rather than being inset by the section padding */
-      margin: 0 calc(-1 * var(--pad));
-      padding: 0 0 clamp(28px, 4vw, 56px);
-      scrollbar-width: none;
+      display: flex; width: max-content;
+      animation: rail-run 60s linear infinite;
     }
-    .selection-track::-webkit-scrollbar { display: none; }
-    .selection-item { flex: none; margin: 0; width: clamp(250px, 33vw, 500px); }
-    /* one ascending staircase across the set of six: each card sits higher
-       than the one before it. The period matches the set the loop wraps by,
-       so the stair pattern is identical either side of the seam. */
-    .selection-item:nth-child(6n + 1) { margin-top: clamp(80px, 11vw, 200px); }
-    .selection-item:nth-child(6n + 2) { margin-top: clamp(64px, 8.8vw, 160px); }
-    .selection-item:nth-child(6n + 3) { margin-top: clamp(48px, 6.6vw, 120px); }
-    .selection-item:nth-child(6n + 4) { margin-top: clamp(32px, 4.4vw, 80px); }
-    .selection-item:nth-child(6n + 5) { margin-top: clamp(16px, 2.2vw, 40px); }
-    .selection-item:nth-child(6n + 6) { margin-top: 0; }
+    .selection-viewport:hover .selection-track { animation-play-state: paused; }
+    /* the gap lives on the items, not as flex gap: that makes every item cost
+       exactly width+gap, so one third of the track is exactly one set and the
+       loop point is seamless. */
+    @keyframes rail-run { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-33.3333%, 0, 0); } }
+
+    .selection-item { flex: none; margin: 0 clamp(18px, 2.6vw, 44px) 0 0; width: clamp(250px, 33vw, 500px); }
     .selection-item > div { overflow: hidden; border-radius: 0; background: #0b1512; }
     .selection-item img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.62) brightness(0.86); transition: transform 900ms cubic-bezier(.16,1,.3,1); }
     .selection-item:hover img { transform: scale(1.04); }
     .selection-item > div { aspect-ratio: 4 / 3; }
-    .selection-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
-    .selection-controls button[data-selection-prev],
-    .selection-controls button[data-selection-next] {
-      padding: 11px 22px;
-      border: 1px solid var(--line); border-radius: 999px; background: transparent;
-      cursor: pointer; transition: background 240ms ease, color 240ms ease, border-color 240ms ease, opacity 240ms ease;
-    }
-    .selection-controls button:hover { background: var(--cream); border-color: var(--cream); color: var(--forest); }
-    .selection-controls { margin-top: clamp(20px, 3vw, 40px); }
-
     /* ─────────────────────────── numbers ───────────────────────────
        Columns start as a descending staircase and collapse into one row as
        you scroll: every block is sticky at the same top, but each starts at
@@ -312,7 +292,7 @@
     .numbers { background: var(--panel); }
     .numbers-head { display: flex; flex-wrap: wrap; gap: 24px 48px; align-items: end; justify-content: space-between; margin-bottom: clamp(40px, 6vw, 80px); }
     .numbers-head h2 { max-width: 14ch; margin: 0; font-size: var(--h2); }
-    .numbers-head p { max-width: 34ch; margin: 0; color: var(--dim); font-size: 15px; }
+    .numbers-head p:not(.eyebrow) { max-width: 34ch; margin: 0; color: var(--dim); font-size: 15px; }
 
     .numbers-grid { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; height: 620px; }
     /* each divider is a dim track with a brighter bar scaling down it as the
@@ -342,8 +322,8 @@
     .projects-stage { margin: 0 calc(-1 * var(--pad)); }
     .projects-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 80px); align-items: end; margin-bottom: clamp(52px, 8vw, 120px); }
     .projects-head h2 { margin: 0; font-size: var(--h2); }
-    .projects-head .projects-aside { display: grid; justify-items: start; gap: 24px; }
-    .projects-head p { max-width: 38ch; margin: 0; color: var(--dim); font-size: clamp(15px, 1.2vw, 18px); }
+    .projects-head .projects-aside { display: grid; justify-items: start; align-content: end; }
+    .projects-head p:not(.eyebrow) { max-width: 38ch; margin: 0; color: var(--dim); font-size: clamp(15px, 1.2vw, 18px); }
     /* scroll swaps the project: the backdrop becomes that venue's own photo
        and its card cross-fades in, while the split stays pinned. */
     .projects-stage { position: relative; height: 400vh; }
@@ -368,7 +348,7 @@
     }
     .bg-layer.is-revealed img { transform: none; }
 
-    .project-cards { position: relative; z-index: 2; display: grid; width: min(400px, 82vw); }
+    .project-cards { position: relative; z-index: 2; display: grid; width: min(560px, 88vw); }
     .project-card {
       grid-area: 1 / 1; display: block; text-decoration: none;
       opacity: 0; transform: translateY(30px); pointer-events: none;
@@ -390,12 +370,10 @@
     .polaroid img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.6) brightness(0.86); transition: transform 900ms cubic-bezier(.16,1,.3,1), filter 500ms ease; }
     .project-card:hover .polaroid img { transform: scale(1.04); filter: saturate(0.8) brightness(0.98); }
     .polaroid-body { padding: clamp(18px, 1.6vw, 26px) 2px clamp(6px, 0.6vw, 10px); }
-    .polaroid h3 { margin: 0 0 12px; font-family: "Instrument Serif", Georgia, serif; font-size: clamp(19px, 1.65vw, 26px); font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; }
+    .polaroid h3 { margin: 0 0 10px; font-family: "Instrument Serif", Georgia, serif; font-size: clamp(21px, 1.9vw, 30px); font-weight: 400; }
     .polaroid-meta { margin: 0; color: rgba(18, 41, 31, 0.62); font-size: clamp(13px, 1.05vw, 15px); line-height: 1.5; }
-    .polaroid-plus { display: block; margin-top: clamp(16px, 1.6vw, 26px); color: #8a6c33; font-size: 20px; line-height: 1; transition: transform 500ms cubic-bezier(.16,1,.3,1); }
-    .project-card:hover .polaroid-plus { transform: rotate(90deg); }
 
-    .polaroid figure { aspect-ratio: 1 / 1.06; }
+    .polaroid figure { aspect-ratio: 3 / 2; }
 
     @media (prefers-reduced-motion: reduce) {
       .projects-stage { height: auto; }
@@ -490,7 +468,7 @@
     .strategies-card { width: min(560px, 84vw); padding: 0 clamp(16px, 2vw, 28px); text-align: center; }
     .strategies-card h2 { margin: 0 0 18px; font-size: var(--h2); }
     .strategies-card .divider { display: block; width: 46px; height: 1px; margin: 0 auto 20px; background: var(--gold); }
-    .strategies-card p { margin: 0; color: var(--dim); font-size: clamp(14px, 1.15vw, 17px); }
+    .strategies-card p:not(.eyebrow) { margin: 0; color: var(--dim); font-size: clamp(14px, 1.15vw, 17px); }
 
     @media (prefers-reduced-motion: reduce) {
       .strategies { height: auto; }
@@ -524,9 +502,9 @@
 
     /* ─────────────────────────── location ─────────────────────────── */
     .location { overflow: hidden; background: var(--ink); }
-    .loc-head { margin-bottom: clamp(36px, 5vw, 66px); }
-    .loc-head h2 { max-width: 16ch; margin: 0 0 16px; font-size: var(--h2); }
-    .loc-head p { max-width: 48ch; margin: 0; color: var(--dim); font-size: clamp(15px, 1.2vw, 18px); }
+    .loc-head { margin-bottom: clamp(36px, 5vw, 66px); text-align: center; }
+    .loc-head h2 { max-width: 16ch; margin: 0 auto 16px; font-size: var(--h2); }
+    .loc-head p:not(.eyebrow) { max-width: 48ch; margin: 0 auto; color: var(--dim); font-size: clamp(15px, 1.2vw, 18px); }
     .loc-layout { display: grid; grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr); gap: clamp(28px, 5vw, 72px); align-items: center; }
 
     .loc-list { display: grid; }
@@ -612,7 +590,7 @@
     }
     .cta-panel > div, .cta-panel > img { position: relative; z-index: 2; }
     .cta-panel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.86fr); gap: clamp(32px, 5vw, 80px); align-items: center; }
-    .cta-copy { max-width: 30ch; }
+    .cta-copy { max-width: none; }
     .cta-art {
       display: grid; place-items: center;
       aspect-ratio: 4 / 3; width: 100%;
@@ -620,11 +598,11 @@
       color: var(--faint); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
     }
     img.cta-art { border: 0; }
-    .cta-panel h2 { margin: 0 0 20px; font-size: var(--h2); }
-    .cta-panel p:not(.eyebrow) { max-width: 46ch; margin: 0 0 34px; color: rgba(237,231,218,0.72); font-size: clamp(15px, 1.2vw, 18px); }
+    .cta-panel h2 { max-width: 17ch; margin: 0 0 22px; font-size: var(--h2); text-wrap: balance; }
+    .cta-panel p:not(.eyebrow) { max-width: 50ch; margin: 0 0 34px; color: rgba(237,231,218,0.72); font-size: clamp(15px, 1.2vw, 18px); text-wrap: pretty; }
 
     /* ─────────────────────────── footer ─────────────────────────── */
-    .site-footer { padding: clamp(64px, 8vw, 120px) var(--pad) 28px; background: var(--panel); border-top: 1px solid var(--line); }
+    .site-footer { padding: clamp(64px, 8vw, 120px) var(--pad) 28px; background: var(--void); border-top: 1px solid var(--line); }
     .footer-top { display: grid; grid-template-columns: 1.4fr 0.85fr 0.85fr 0.85fr; gap: 44px; }
     .footer-newsletter h3 { margin: 0 0 22px; font-family: "Instrument Serif", Georgia, serif; font-size: var(--h2); font-weight: 400; line-height: 0.94; letter-spacing: -0.015em; }
     .footer-signup { display: flex; align-items: center; gap: 10px; max-width: 380px; }
@@ -638,8 +616,7 @@
     .footer-links { display: grid; gap: 9px; font-size: 15px; }
     .footer-links a, .footer-links span { color: var(--dim); text-decoration: none; }
     .footer-links a:hover { color: var(--cream); }
-    .footer-brand { display: block; width: min(1400px, 100%); margin: clamp(56px, 8vw, 108px) auto 0; opacity: 0.9; }
-    .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 28px; margin-top: 28px; color: var(--faint); font-size: 12px; }
+    .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 28px; margin-top: clamp(48px, 7vw, 96px); padding-top: 26px; border-top: 1px solid var(--line); color: var(--faint); font-size: 12px; }
 
     /* ─────────────────────────── reveal ─────────────────────────── */
     [data-reveal] { opacity: 0; transform: translateY(26px); transition: opacity 900ms ease, transform 1000ms cubic-bezier(.16,1,.3,1); }
@@ -648,6 +625,7 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
       [data-reveal] { opacity: 1; transform: none; }
+      .selection-track { animation: none; }
       .hero-title h1, .to-l, .to-r { transform: none; }
       .loc-map { transform: none; }
     }
@@ -787,7 +765,8 @@
     <!-- ══════════ 02b · selection rail ══════════ -->
     <section class="section selection" id="selection" aria-labelledby="selection-title">
       <h2 class="sr-only" id="selection-title">Selected views</h2>
-      <div class="selection-track" data-selection-track tabindex="0" role="group" aria-label="Selected views, scrollable">
+      <div class="selection-viewport">
+        <div class="selection-track" data-selection-track aria-hidden="true">
         <figure class="selection-item">
           <div><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park seen from above"></div>
         </figure>
@@ -806,11 +785,7 @@
         <figure class="selection-item">
           <div><img src="../assets/motor-garten.avif" alt="Motor Garten automotive commercial facility"></div>
         </figure>
-      </div>
-
-      <div class="selection-controls">
-        <button type="button" data-selection-prev>Prev</button>
-        <button type="button" data-selection-next>Next</button>
+        </div>
       </div>
     </section>
 
@@ -849,11 +824,10 @@
       <div class="projects-head">
         <div data-reveal>
           <p class="eyebrow">Our portfolio</p>
-          <h2 class="display" id="projects-title">Our<br>Projects</h2>
+          <h2 class="display" id="projects-title">Our Projects</h2>
         </div>
         <div class="projects-aside" data-reveal>
           <p>A curated selection of commercial destinations across Dubai&rsquo;s fastest-growing districts, each built and managed by Gulfalts end to end.</p>
-          <a class="pill" href="https://www.gulfalts.com/" target="_blank" rel="noreferrer">Go to all projects</a>
         </div>
       </div>
 
@@ -871,8 +845,7 @@
                 <figure><img src="../assets/creative-park.avif" alt="Dubai Creative Park, a wellness and fitness destination"></figure>
                 <div class="polaroid-body">
                   <h3>Dubai Creative Park</h3>
-                  <p class="polaroid-meta">Cultural landmark<br>500,000 sq ft<br>Dubai, UAE</p>
-                  <span class="polaroid-plus" aria-hidden="true">+</span>
+                  <p class="polaroid-meta">Dubai&rsquo;s first 500,000 sq ft wellness and fitness destination, evenly balanced between built environment and green landscape.</p>
                 </div>
               </div>
             </a>
@@ -881,8 +854,7 @@
                 <figure><img src="../assets/fintech-district.avif" alt="Dubai Fintech District business park"></figure>
                 <div class="polaroid-body">
                   <h3>Dubai Fintech District</h3>
-                  <p class="polaroid-meta">Business park<br>Dubai, UAE</p>
-                  <span class="polaroid-plus" aria-hidden="true">+</span>
+                  <p class="polaroid-meta">A business park developed and managed by Gulf Alternatives, positioned for financial and technology tenants in Dubai.</p>
                 </div>
               </div>
             </a>
@@ -891,8 +863,7 @@
                 <figure><img src="../assets/v8-district.avif" alt="V8 District automotive commercial facility"></figure>
                 <div class="polaroid-body">
                   <h3>V8 District</h3>
-                  <p class="polaroid-meta">Specialized commercial facilities<br>Dubai, UAE</p>
-                  <span class="polaroid-plus" aria-hidden="true">+</span>
+                  <p class="polaroid-meta">A specialized commercial facility in the Gulfalts portfolio, built around Dubai&rsquo;s automotive sector.</p>
                 </div>
               </div>
             </a>
@@ -901,8 +872,7 @@
                 <figure><img src="../assets/motor-garten.avif" alt="Motor Garten automotive commercial facility"></figure>
                 <div class="polaroid-body">
                   <h3>Motor Garten</h3>
-                  <p class="polaroid-meta">Specialized commercial facilities<br>Dubai, UAE</p>
-                  <span class="polaroid-plus" aria-hidden="true">+</span>
+                  <p class="polaroid-meta">A specialized commercial facility developed and managed end to end by Gulf Alternatives.</p>
                 </div>
               </div>
             </a>
@@ -1133,7 +1103,6 @@
         </div>
       </div>
     </div>
-    <img class="footer-brand" src="../assets/gulfalts-white.svg" alt="Gulfalts">
     <div class="footer-bottom">
       <span>&copy; 2026 Gulf Alternatives. All rights reserved.</span>
       <span>Institutional commercial real estate in Dubai</span>
@@ -1358,204 +1327,14 @@
       render();
     })();
 
-    /* ── selection rail: an endless loop, so Next always has another tier ── */
+    /* ── selection rail: three copies so the CSS marquee loops seamlessly ── */
     (() => {
       const track = document.querySelector('[data-selection-track]');
-      const prev = document.querySelector('[data-selection-prev]');
-      const next = document.querySelector('[data-selection-next]');
-      if (!track || !prev || !next) return;
-
+      if (!track) return;
       const originals = [...track.children];
-      const setSize = originals.length;
-
-      // three copies of the set: the position normalises back to the middle
-      // one, so there is always a full set to move into either way. The stair
-      // pattern's period is the set size, so the seam is invisible.
       for (let c = 0; c < 2; c++) {
-        for (const el of originals) {
-          const clone = el.cloneNode(true);
-          clone.setAttribute('aria-hidden', 'true');
-          track.appendChild(clone);
-        }
+        for (const el of originals) track.appendChild(el.cloneNode(true));
       }
-
-      const step = () => {
-        const first = track.firstElementChild;
-        if (!first) return 0;
-        const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
-        return first.getBoundingClientRect().width + gap;
-      };
-      const setWidth = () => step() * setSize;
-
-      // scroll-behavior on the element is smooth, so assigning scrollLeft
-      // would ANIMATE the wrap — the rail visibly rewound instead of looping.
-      // Every reposition has to be an instant jump.
-      const jump = (x) => {
-        const prevBehavior = track.style.scrollBehavior;
-        track.style.scrollBehavior = 'auto';
-        track.scrollLeft = x;
-        track.style.scrollBehavior = prevBehavior;
-      };
-
-      const recentre = () => { const w = setWidth(); if (w) jump(w); };
-
-      const normalise = () => {
-        const w = setWidth();
-        if (!w) return;
-        if (track.scrollLeft >= w * 2) jump(track.scrollLeft - w);
-        else if (track.scrollLeft < w * 0.5) jump(track.scrollLeft + w);
-      };
-
-      // wrap once the smooth scroll has settled, so the jump never lands
-      // mid-animation (the content is identical, so it is invisible)
-      let idle;
-      track.addEventListener('scroll', () => {
-        clearTimeout(idle);
-        idle = setTimeout(normalise, 140);
-      }, { passive: true });
-
-      prev.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: reduced ? 'auto' : 'smooth' }));
-      next.addEventListener('click', () => track.scrollBy({ left: step(), behavior: reduced ? 'auto' : 'smooth' }));
-      addEventListener('resize', recentre, { passive: true });
-
-      // card widths depend on loaded images, so centre once layout is real
-      recentre();
-      addEventListener('load', recentre);
-      if ('ResizeObserver' in window) {
-        let first = true;
-        new ResizeObserver(() => { if (first) { first = false; return; } recentre(); }).observe(track);
-      }
-    })();
-
-    /* ── metrics: rules fill with scroll, figures count up on entry ── */
-    (() => {
-      const grid = document.querySelector('.numbers-grid');
-      const rules = document.querySelector('[data-numbers-rules]');
-      const values = [...document.querySelectorAll('.number-value[data-count]')];
-
-      if (grid && rules && !reduced) {
-        let pending = false;
-        const render = () => {
-          pending = false;
-          const r = grid.getBoundingClientRect();
-          const span = r.height + innerHeight * 0.4;
-          const p = Math.min(1, Math.max(0, (innerHeight * 0.9 - r.top) / span));
-          rules.style.setProperty('--fill', p.toFixed(4));
-        };
-        addEventListener('scroll', () => { if (!pending) { pending = true; requestAnimationFrame(render); } }, { passive: true });
-        addEventListener('resize', render, { passive: true });
-        render();
-      }
-
-      if (!values.length || reduced || !('IntersectionObserver' in window)) return;
-
-      const format = (el, v) => {
-        const dec = Number(el.dataset.decimals || 0);
-        const n = el.dataset.group !== undefined
-          ? Math.round(v).toLocaleString('en-US')
-          : v.toFixed(dec);
-        return (el.dataset.prefix || '') + n + (el.dataset.suffix || '');
-      };
-
-      const run = (el) => {
-        const target = Number(el.dataset.count);
-        const DUR = 1500, t0 = performance.now();
-        const tick = (now) => {
-          const t = Math.min(1, (now - t0) / DUR);
-          const eased = 1 - Math.pow(1 - t, 4);
-          el.textContent = format(el, target * eased);
-          if (t < 1) requestAnimationFrame(tick);
-          else el.textContent = format(el, target);
-        };
-        requestAnimationFrame(tick);
-      };
-
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach((en) => {
-          if (!en.isIntersecting) return;
-          io.unobserve(en.target);
-          run(en.target);
-        });
-      }, { rootMargin: '0px 0px -18% 0px' });
-      values.forEach((el) => { el.textContent = format(el, 0); io.observe(el); });
-    })();
-
-    /* ── projects: scroll swaps the active venue while the stage stays pinned ── */
-    (() => {
-      const stage = document.querySelector('.projects-stage');
-      const cards = [...document.querySelectorAll('[data-project-card]')];
-      const shots = [...document.querySelectorAll('[data-project-bg]')];
-      if (!stage || !cards.length || reduced) return;
-
-      let index = 0, pending = false;
-      const render = () => {
-        pending = false;
-        const range = stage.offsetHeight - innerHeight;
-        if (range <= 0) return;
-        const progress = Math.min(0.9999, Math.max(0, -stage.getBoundingClientRect().top / range));
-        const i = Math.floor(progress * cards.length);
-        if (i === index) return;
-        index = i;
-        cards.forEach((el, k) => el.classList.toggle('is-active', k === i));
-        shots.forEach((el, k) => el.classList.toggle('is-revealed', k <= i));
-      };
-      addEventListener('scroll', () => { if (!pending) { pending = true; requestAnimationFrame(render); } }, { passive: true });
-      addEventListener('resize', render, { passive: true });
-      render();
-    })();
-
-    /* ── selection rail: an endless loop, so Next always has another tier ── */
-    (() => {
-      const track = document.querySelector('[data-selection-track]');
-      const prev = document.querySelector('[data-selection-prev]');
-      const next = document.querySelector('[data-selection-next]');
-      if (!track || !prev || !next) return;
-
-      const originals = [...track.children];
-      const setSize = originals.length;
-
-      // three copies of the set: scrolling normalises back to the middle one,
-      // so there is always a full set of cards on either side to move into.
-      // The 3-step tier pattern repeats every 3 cards and the set is a
-      // multiple of 3, so the staircase carries across the seam unbroken.
-      for (let c = 0; c < 2; c++) {
-        for (const el of originals) {
-          const clone = el.cloneNode(true);
-          clone.setAttribute('aria-hidden', 'true');
-          track.appendChild(clone);
-        }
-      }
-
-      const step = () => {
-        const first = track.firstElementChild;
-        if (!first) return track.clientWidth * 0.8;
-        const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
-        return first.getBoundingClientRect().width + gap;
-      };
-      const setWidth = () => step() * setSize;
-
-      // start one set in, so there is room to scroll backwards immediately
-      const recentre = () => { track.scrollLeft = setWidth(); };
-
-      const normalise = () => {
-        const w = setWidth();
-        if (!w) return;
-        if (track.scrollLeft >= w * 2) track.scrollLeft -= w;
-        else if (track.scrollLeft < w * 0.5) track.scrollLeft += w;
-      };
-
-      // wrap once the native smooth scroll has settled, so the jump never
-      // lands mid-animation (the content is identical, so it is invisible)
-      let idle;
-      track.addEventListener('scroll', () => {
-        clearTimeout(idle);
-        idle = setTimeout(normalise, 120);
-      }, { passive: true });
-
-      prev.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: reduced ? 'auto' : 'smooth' }));
-      next.addEventListener('click', () => track.scrollBy({ left: step(), behavior: reduced ? 'auto' : 'smooth' }));
-      addEventListener('resize', recentre, { passive: true });
-      recentre();
     })();
 
     /* ── what we do: scroll advances the slide while the split stays pinned ── */
