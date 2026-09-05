@@ -327,7 +327,8 @@
     .scale-grid-wrap { position: relative; overflow: hidden }
     .scale-grid-content { display: grid; gap: 1rem }
     .scale-grid-item { position: relative; overflow: hidden; background: #111; aspect-ratio: 3/2; border-radius: 8px }
-    .scale-grid-item img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block }
+    .scale-grid-item img,
+    .scale-grid-item video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block }
 
     /* ponytail: left-centred, and hidden until the grid has finished zooming
        to fullscreen — it only earns the overlay once the image is the whole
@@ -387,7 +388,8 @@
       .scale-grid-item:nth-child(4) { top: 50.3em;    right: 0;      width: 30.9em; height: 34.1em }
       .scale-grid-item:nth-child(5) { bottom: 12.6em; left: 6.6em;   width: 37.5em; height: 28.8em }
       .scale-grid-item:nth-child(6) { bottom: 0;      left: 46.1em;  width: 63.8em; height: 41.2em }
-      .scale-grid-item:nth-child(3) img { transform: scale(var(--img, 1.5)) }
+      .scale-grid-item:nth-child(3) img,
+      .scale-grid-item:nth-child(3) video { transform: scale(var(--img, 1.5)) }
     }
     @media (prefers-reduced-motion: reduce) {
       .scale-grid { height: auto }
@@ -866,7 +868,9 @@
           <div class="scale-grid-content js-scale">
             <div class="scale-grid-item"><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park aerial view"></div>
             <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park fitness space at night"></div>
-            <div class="scale-grid-item js-scale-ref"><img src="../assets/fitness-day.png" alt="Creative Park fitness space by day"></div>
+            <div class="scale-grid-item js-scale-ref">
+              <video data-immersive-video src="../assets/asset-scroll-scrub.mp4" poster="../assets/asset-scroll-poster.jpg" muted playsinline preload="auto" aria-label="Interior walkthrough of a modern residence at night"></video>
+            </div>
             <div class="scale-grid-item"><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park landscape"></div>
             <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park interior at night"></div>
             <div class="scale-grid-item"><img src="../assets/fitness-day.png" alt="Creative Park fitness space"></div>
@@ -1622,6 +1626,7 @@
       const section = document.querySelector('.immersive');
       const copy = document.querySelector('[data-immersive-copy]');
       const steps = [...document.querySelectorAll('[data-immersive-copy] .immersive-step')];
+      const video = document.querySelector('[data-immersive-video]');
       if (!section || !copy || !steps.length) return;
 
       // ponytail: the scale-grid finishes its zoom at HOLD_IN + RUN (.26+.53)
@@ -1629,6 +1634,30 @@
       // the frame is still a grid of small tiles, not a full-bleed image —
       // and the steps split whatever scroll is left after it.
       const ZOOM_END = 0.79;
+
+      // ponytail: scroll-scrubbed video. The asset is re-encoded all-keyframe
+      // (asset-scroll-scrub.mp4) so seeking is instant — the source had 2
+      // keyframes in 240 frames, which stutters badly when scrubbed. Target
+      // time is lerped in its own rAF loop rather than set straight from the
+      // scroll handler, so the playhead glides instead of stepping.
+      let targetTime = 0;
+      let playhead = 0;
+      let videoRaf = null;
+      const scrubTick = () => {
+        const diff = targetTime - playhead;
+        if (Math.abs(diff) < 0.008) {
+          playhead = targetTime;
+          videoRaf = null;
+        } else {
+          playhead += diff * 0.18;
+          videoRaf = requestAnimationFrame(scrubTick);
+        }
+        if (video.readyState >= 1) video.currentTime = playhead;
+      };
+      const scrubTo = (t) => {
+        targetTime = t;
+        if (videoRaf === null) videoRaf = requestAnimationFrame(scrubTick);
+      };
 
       let pending = false;
       const render = () => {
@@ -1639,17 +1668,26 @@
 
         const entered = progress >= ZOOM_END;
         copy.classList.toggle('is-visible', entered);
-        if (!entered) return;
+        if (!entered) {
+          // hold on frame 0 until the zoom lands — scrubbing only starts fullscreen
+          if (video) scrubTo(0);
+          return;
+        }
 
         const local = Math.min(0.999, (progress - ZOOM_END) / (1 - ZOOM_END));
         const active = Math.floor(local * steps.length);
         steps.forEach((step, i) => step.classList.toggle('is-active', i === active));
+
+        if (video && video.duration) scrubTo(local * video.duration);
       };
 
       addEventListener('scroll', () => {
         if (!pending) { pending = true; requestAnimationFrame(render); }
       }, { passive: true });
       addEventListener('resize', render, { passive: true });
+
+      // duration isn't known until metadata lands — re-run once it is
+      if (video) video.addEventListener('loadedmetadata', render);
       render();
     })();
   </script>
