@@ -254,8 +254,16 @@
       transition: opacity 900ms ease, transform 900ms cubic-bezier(.16,1,.3,1);
     }
     .immersive-step.is-active { opacity: 1; transform: none; }
-    .istep-copy h2 { margin: 0 0 14px; font-size: clamp(26px, 3.4vw, 48px); }
-    .istep-copy p { margin: 0; max-width: 44ch; color: var(--dim); font-size: clamp(15px, 1.3vw, 18px); }
+    /* text-wrap: balance evens the line lengths instead of leaving a one-word
+       orphan on the last line — the headline lengths here vary a lot. */
+    .istep-copy h2 {
+      margin: 0 0 14px; font-size: clamp(26px, 3.4vw, 48px);
+      text-wrap: balance; max-width: 20ch;
+    }
+    .istep-copy p {
+      margin: 0; max-width: 46ch; color: var(--dim);
+      font-size: clamp(15px, 1.3vw, 18px); text-wrap: pretty;
+    }
 
     /* three arrangements, one per step, so the frame recomposes on scroll */
     .step-split {
@@ -278,6 +286,7 @@
       column-gap: clamp(24px, 4vw, 64px); justify-items: end;
     }
     .step-mirror .istep-copy { max-width: min(620px, 48vw); text-align: right; }
+    .step-mirror .istep-copy h2,
     .step-mirror .istep-copy p { margin-left: auto; }
     .step-mirror .immersive-metrics {
       text-align: left; border-right: 0; padding-right: 0;
@@ -297,15 +306,6 @@
       margin: 0; color: var(--cream); font-size: clamp(13px, 1.05vw, 15px); line-height: 1.35;
     }
 
-    /* hero scroll progress — full-bleed hairline flush to the bottom edge */
-    .hero-progress {
-      position: absolute; z-index: 5; inset: auto 0 0 0; height: 2px;
-      background: rgba(240, 236, 228, 0.18);
-    }
-    .hero-progress-fill {
-      position: absolute; inset: 0; transform-origin: left center;
-      transform: scaleX(var(--hp, 0)); background: var(--cream);
-    }
 
     /* ─────────────────────────── about ─────────────────────────── */
     .about { background: var(--ink); }
@@ -832,10 +832,6 @@
               </div>
             </div>
           </div>
-
-          <div class="hero-progress" data-hero-progress aria-hidden="true">
-            <span class="hero-progress-fill"></span>
-          </div>
       </div>
     </section>
 
@@ -1280,7 +1276,6 @@
       const fades = [...document.querySelectorAll('[data-hero-fade]')];
       const title = document.querySelector('.hero-title');
       const video = document.querySelector('[data-immersive-video]');
-      const progressBar = document.querySelector('[data-hero-progress]');
       if (!section || !copy || !steps.length) return;
 
       // the title owns the first quarter of the hero scroll; the three
@@ -1318,7 +1313,6 @@
         const p = Math.min(1, progress / (STEPS_START * 0.9));
         const fade = Math.max(0, 1 - progress / (STEPS_START * 0.85));
         fades.forEach((el) => el.style.setProperty('--hero-title-opacity', fade.toFixed(3)));
-        if (progressBar) progressBar.style.setProperty('--hp', progress.toFixed(4));
         if (title) {
           title.style.setProperty('--p', p.toFixed(4));
           // holds full strength while it travels, then clears at the very end
