@@ -23,6 +23,8 @@
       --gold: #c0a16b;
       --line: rgba(237, 231, 218, 0.13);
       --pad: clamp(20px, 4vw, 64px);
+      /* one scale for every section headline */
+      --h2: clamp(30px, 4.4vw, 68px);
     }
 
     * { box-sizing: border-box; }
@@ -65,7 +67,7 @@
     .display em { font-style: italic; }
 
     .eyebrow {
-      margin: 0 0 20px;
+      margin: 0 0 14px;
       color: var(--gold);
       font-size: 11px;
       font-weight: 400;
@@ -80,7 +82,7 @@
       display: inline-flex; align-items: center; gap: 10px;
       padding: 11px 22px;
       border: 1px solid var(--line);
-      border-radius: 0;
+      border-radius: 999px;
       background: transparent;
       color: var(--cream);
       font-size: 13px; letter-spacing: 0.02em; text-decoration: none;
@@ -133,25 +135,48 @@
     .nav-menu:hover .roll span, .nav-inquire:hover .roll span { transform: translateY(-105%); }
     .nav-menu:hover .roll span + span, .nav-inquire:hover .roll span + span { transform: none; }
 
-    /* full-screen menu behind the pill */
-    .site-menu {
-      position: fixed; inset: 0; z-index: 880;
-      display: grid; align-content: center; justify-items: center; gap: clamp(10px, 1.6vh, 22px);
-      padding: 120px var(--pad) var(--pad);
-      background: rgba(10, 19, 16, 0.96);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+    /* menu panel: a card that unfolds downward from the pill, not a takeover.
+       clip-path drives the reveal so it doesn't fight the centring translate. */
+    .menu-scrim {
+      position: fixed; inset: 0; z-index: 870;
+      background: rgba(6, 12, 9, 0.5);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
       opacity: 0; pointer-events: none;
-      transition: opacity 420ms ease;
+      transition: opacity 380ms ease;
     }
-    .site-menu.is-open { opacity: 1; pointer-events: auto; }
+    .menu-scrim.is-open { opacity: 1; pointer-events: auto; }
+
+    .site-menu {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      z-index: 880;
+      width: min(680px, calc(100% - 2 * var(--pad)));
+      max-height: calc(100svh - 40px);
+      padding: 104px clamp(20px, 4vw, 44px) 30px;
+      display: grid; align-content: start; justify-items: center;
+      gap: clamp(8px, 1.2vh, 16px);
+      overflow-y: auto;
+      border: 1px solid rgba(237, 231, 218, 0.1);
+      border-radius: 28px;
+      background: rgba(14, 27, 22, 0.94);
+      backdrop-filter: blur(20px) saturate(150%);
+      -webkit-backdrop-filter: blur(20px) saturate(150%);
+      clip-path: inset(0 0 100% 0 round 28px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 300ms ease, clip-path 560ms cubic-bezier(.16, 1, .3, 1);
+    }
+    .site-menu.is-open { opacity: 1; pointer-events: auto; clip-path: inset(0 0 0 0 round 28px); }
     .site-menu a {
       font-family: "Instrument Serif", Georgia, serif;
-      font-size: clamp(30px, 5vw, 66px); line-height: 1.1;
-      color: var(--dim); text-decoration: none;
+      font-size: clamp(22px, 3.2vw, 38px); line-height: 1.18;
+      color: var(--cream); text-decoration: none;
       transition: color 300ms ease;
     }
-    .site-menu a:hover { color: var(--cream); }
+    .site-menu a:hover { color: var(--gold); }
+    .menu-foot { margin: clamp(20px, 3vh, 40px) 0 0; display: flex; gap: 22px; color: var(--faint); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; }
+    .menu-foot a { font-family: inherit; font-size: inherit; color: var(--faint); letter-spacing: inherit; }
+
+    /* while open the pill reads as the panel's own header */
+    .nav[data-open] .nav-pill { background: transparent; border-color: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
 
     /* ────────────────── hero = full-bleed immersive scroll ────────────────── */
     .hero { position: relative; height: 440vh; background: var(--void); }
@@ -175,14 +200,25 @@
       display: grid; align-content: center;
       padding: 0 clamp(24px, 5vw, 76px);
       pointer-events: none;
-      opacity: var(--hero-title-opacity, 1);
-      transition: opacity 400ms ease;
+      opacity: var(--title-fade, 1);
       text-shadow: 0 4px 40px rgba(0, 0, 0, 0.55);
     }
-    .hero-title h1 { margin: 0; font-size: clamp(38px, 7.6vw, 128px); line-height: 0.92; }
-    .hero-title h1 span { display: block; }
-    .hero-title h1 span:nth-child(2) { padding-left: 12%; }
-    .hero-title h1 span:nth-child(3) { padding-left: 26%; }
+    .hero-title h1 {
+      margin: 0; font-size: clamp(38px, 7.6vw, 128px); line-height: 0.92;
+      display: grid; gap: 0;
+      transform: scale(calc(1 + var(--p, 0) * 0.22));
+      transform-origin: center;
+    }
+    /* the words sit as two clusters — left and right — and slide apart as the
+       hero scrolls, the way the reference splits RIO PROPERTY from KNOWS
+       CAPE TOWN. Translation does the work; the scale is only a nudge. */
+    .ht-row { display: flex; }
+    .ht-row.a { justify-content: flex-start; }
+    .ht-row.b { justify-content: space-between; }
+    .ht-row.c { justify-content: flex-end; }
+    .ht-row span { display: block; white-space: nowrap; will-change: transform; }
+    .to-l { transform: translateX(calc(var(--p, 0) * -92%)); }
+    .to-r { transform: translateX(calc(var(--p, 0) * 92%)) translateY(calc(var(--p, 0) * 12%)); }
 
     .hero-meta {
       position: absolute; z-index: 4; left: clamp(24px, 5vw, 76px); top: clamp(96px, 12vh, 150px);
@@ -221,46 +257,49 @@
 
     /* ─────────────────────────── about ─────────────────────────── */
     .about { background: var(--ink); }
-    .about-statement { max-width: 21ch; margin: 0 0 clamp(44px, 6vw, 88px); font-size: clamp(30px, 4.6vw, 76px); }
+    .about-statement { max-width: 21ch; margin: 0 0 clamp(44px, 6vw, 88px); font-size: var(--h2); }
     .about-foot { display: grid; grid-template-columns: 1fr minmax(0, 46ch); gap: clamp(32px, 6vw, 96px); align-items: start; }
     .about-foot p { margin: 0 0 26px; color: var(--dim); font-size: clamp(15px, 1.2vw, 18px); }
     .about-foot p:last-of-type { margin-bottom: 30px; }
 
     /* ────────────────── selection (horizontal rail) ────────────────── */
-    .selection { padding-top: 0; overflow: hidden; }
+    .selection { padding-top: 0; overflow: visible; }
     .selection-track {
       display: flex; gap: clamp(18px, 2.6vw, 44px);
       /* native overflow scrolling + snap — no carousel library needed, the
          arrows just call scrollBy() on this element. */
       overflow-x: auto; overscroll-behavior-x: contain;
       scroll-behavior: smooth;
-      /* bleed past the section's right padding so the rail visibly runs off
-         the edge, the way the reference does */
-      margin-right: calc(-1 * var(--pad));
-      padding: 0 var(--pad) clamp(28px, 4vw, 56px) 0;
+      /* full-bleed both sides: the rail runs off each edge of the viewport
+         rather than being inset by the section padding */
+      margin: 0 calc(-1 * var(--pad));
+      padding: 0 0 clamp(28px, 4vw, 56px);
       scrollbar-width: none;
     }
     .selection-track::-webkit-scrollbar { display: none; }
     .selection-item { flex: none; margin: 0; width: clamp(250px, 33vw, 500px); }
-    /* every card is the same ratio; they step up in threes so the rail reads
-       as tiers rather than a straight row. */
-    .selection-item:nth-child(3n + 1) { margin-top: clamp(46px, 7.5vw, 116px); }
-    .selection-item:nth-child(3n + 2) { margin-top: clamp(23px, 3.75vw, 58px); }
-    .selection-item:nth-child(3n + 3) { margin-top: 0; }
+    /* one ascending staircase across the set of six: each card sits higher
+       than the one before it. The period matches the set the loop wraps by,
+       so the stair pattern is identical either side of the seam. */
+    .selection-item:nth-child(6n + 1) { margin-top: clamp(80px, 11vw, 200px); }
+    .selection-item:nth-child(6n + 2) { margin-top: clamp(64px, 8.8vw, 160px); }
+    .selection-item:nth-child(6n + 3) { margin-top: clamp(48px, 6.6vw, 120px); }
+    .selection-item:nth-child(6n + 4) { margin-top: clamp(32px, 4.4vw, 80px); }
+    .selection-item:nth-child(6n + 5) { margin-top: clamp(16px, 2.2vw, 40px); }
+    .selection-item:nth-child(6n + 6) { margin-top: 0; }
     .selection-item > div { overflow: hidden; border-radius: 0; background: #0b1512; }
     .selection-item img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.62) brightness(0.86); transition: transform 900ms cubic-bezier(.16,1,.3,1); }
     .selection-item:hover img { transform: scale(1.04); }
     .selection-item > div { aspect-ratio: 4 / 3; }
-    .selection-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
+    .selection-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
     .selection-controls button[data-selection-prev],
     .selection-controls button[data-selection-next] {
       padding: 11px 22px;
-      border: 1px solid var(--line); border-radius: 0; background: transparent;
+      border: 1px solid var(--line); border-radius: 999px; background: transparent;
       cursor: pointer; transition: background 240ms ease, color 240ms ease, border-color 240ms ease, opacity 240ms ease;
     }
     .selection-controls button:hover { background: var(--cream); border-color: var(--cream); color: var(--forest); }
-    .selection-label { display: inline-flex; align-items: center; gap: 12px; padding: 11px 22px; border: 1px solid var(--line); border-radius: 0; font-size: 13px; letter-spacing: 0.02em; }
-    .selection-label svg { opacity: 0.6; }
+    .selection-controls { margin-top: clamp(20px, 3vw, 40px); }
 
     /* ─────────────────────────── numbers ───────────────────────────
        Columns start as a descending staircase and collapse into one row as
@@ -269,7 +308,7 @@
        No JS — the stagger and the pinning are the same two properties. */
     .numbers { background: var(--panel); }
     .numbers-head { display: flex; flex-wrap: wrap; gap: 24px 48px; align-items: end; justify-content: space-between; margin-bottom: clamp(40px, 6vw, 80px); }
-    .numbers-head h2 { max-width: 14ch; margin: 0; font-size: clamp(30px, 4.4vw, 68px); }
+    .numbers-head h2 { max-width: 14ch; margin: 0; font-size: var(--h2); }
     .numbers-head p { max-width: 34ch; margin: 0; color: var(--dim); font-size: 15px; }
 
     .numbers-grid { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; height: 620px; }
@@ -299,7 +338,7 @@
     .projects { padding-bottom: 0; background: var(--ink); }
     .projects-stage { margin: 0 calc(-1 * var(--pad)); }
     .projects-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 80px); align-items: end; margin-bottom: clamp(52px, 8vw, 120px); }
-    .projects-head h2 { margin: 0; font-size: clamp(38px, 6vw, 96px); }
+    .projects-head h2 { margin: 0; font-size: var(--h2); }
     .projects-head .projects-aside { display: grid; justify-items: start; gap: 24px; }
     .projects-head p { max-width: 38ch; margin: 0; color: var(--dim); font-size: clamp(15px, 1.2vw, 18px); }
     /* scroll swaps the project: the backdrop becomes that venue's own photo
@@ -372,14 +411,15 @@
 
     .wwd-panel {
       position: relative; z-index: 2;
-      display: grid; grid-template-rows: auto auto minmax(0, 1fr);
-      gap: clamp(20px, 3vh, 38px);
+      display: grid; grid-template-rows: auto minmax(0, 1fr);
+      gap: clamp(24px, 4vh, 52px);
       padding: clamp(92px, 13vh, 152px) var(--pad) clamp(38px, 6vh, 68px);
       background: var(--void);
     }
-    .wwd-head .eyebrow { margin-bottom: 12px; }
-    .wwd-head h2 { margin: 0; font-size: clamp(24px, 2.4vw, 38px); }
-    .wwd-counter { display: flex; align-items: center; gap: 12px; margin: 0; color: var(--faint); font-size: 12px; letter-spacing: 0.16em; }
+    /* the counter sits opposite the head on the eyebrow's line */
+    .wwd-head { display: flex; align-items: flex-start; justify-content: space-between; gap: clamp(20px, 3vw, 48px); }
+    .wwd-head h2 { max-width: 12ch; margin: 0; font-size: var(--h2); }
+    .wwd-counter { flex: none; display: flex; align-items: center; gap: 12px; margin: 0; color: var(--faint); font-size: 12px; letter-spacing: 0.16em; }
     .wwd-counter i { display: block; width: 34px; height: 1px; background: var(--line); font-style: normal; }
     .wwd-counter b { color: var(--gold); font-weight: 400; }
 
@@ -394,7 +434,7 @@
     .wwd-slide h3 {
       align-self: center; max-width: 14ch; margin: 0;
       font-family: "Instrument Serif", Georgia, serif;
-      font-size: clamp(30px, 4.4vw, 68px); font-weight: 400; line-height: 1;
+      font-size: clamp(34px, 5vw, 78px); font-weight: 400; line-height: 1;
     }
     .wwd-slide p {
       justify-self: end; align-self: end; max-width: 42ch; margin: 0;
@@ -442,8 +482,8 @@
       min-width: 300px;
       background: var(--forest);
     }
-    .strategies-card { width: min(430px, 82%); padding: 0 clamp(16px, 2vw, 28px); text-align: center; }
-    .strategies-card h2 { margin: 0 0 18px; font-size: clamp(28px, 3.4vw, 50px); line-height: 1.06; }
+    .strategies-card { width: min(620px, 82%); padding: 0 clamp(16px, 2vw, 28px); text-align: center; }
+    .strategies-card h2 { margin: 0 0 18px; font-size: var(--h2); }
     .strategies-card .divider { display: block; width: 46px; height: 1px; margin: 0 auto 20px; background: var(--gold); }
     .strategies-card p { margin: 0; color: var(--dim); font-size: clamp(14px, 1.15vw, 17px); }
 
@@ -480,7 +520,7 @@
     /* ─────────────────────────── location ─────────────────────────── */
     .location { overflow: hidden; background: var(--ink); }
     .loc-head { margin-bottom: clamp(36px, 5vw, 66px); }
-    .loc-head h2 { max-width: 16ch; margin: 0 0 16px; font-size: clamp(30px, 4.4vw, 68px); }
+    .loc-head h2 { max-width: 16ch; margin: 0 0 16px; font-size: var(--h2); }
     .loc-head p { max-width: 48ch; margin: 0; color: var(--dim); font-size: clamp(15px, 1.2vw, 18px); }
     .loc-layout { display: grid; grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr); gap: clamp(28px, 5vw, 72px); align-items: center; }
 
@@ -510,7 +550,13 @@
     .loc-item-detail > div { overflow: hidden; }
     .loc-item-detail > div > :last-child { margin-bottom: 4px; }
     .loc-item-detail p { max-width: 46ch; margin: 14px 0 12px; color: var(--dim); font-size: 15px; }
-    .loc-item-detail a { color: var(--cream); font-size: 13px; letter-spacing: 0.02em; }
+    .loc-item-detail a {
+      display: inline-flex; align-items: center;
+      padding: 9px 20px; border: 1px solid var(--line); border-radius: 999px;
+      color: var(--cream); font-size: 13px; letter-spacing: 0.02em; text-decoration: none;
+      transition: background 260ms ease, border-color 260ms ease, color 260ms ease;
+    }
+    .loc-item-detail a:hover { background: var(--cream); border-color: var(--cream); color: var(--forest); }
 
     .loc-map-stage { position: relative; perspective: 1400px; }
     .loc-map {
@@ -559,23 +605,28 @@
       border-radius: 0;
       background: var(--forest-2);
     }
-    .cta-blueprint { position: absolute; inset: 0; opacity: 0.16; pointer-events: none; }
-    .cta-blueprint svg { width: 100%; height: 100%; }
-    .cta-panel > div { position: relative; z-index: 2; max-width: 30ch; }
-    .cta-panel h2 { margin: 0 0 20px; font-size: clamp(32px, 5vw, 76px); }
-    .cta-panel p { max-width: 46ch; margin: 0 0 34px; color: rgba(237,231,218,0.72); font-size: clamp(15px, 1.2vw, 18px); }
-    .cta-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
-    .cta-actions span { color: var(--faint); font-size: 13px; }
+    .cta-panel > div, .cta-panel > img { position: relative; z-index: 2; }
+    .cta-panel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.86fr); gap: clamp(32px, 5vw, 80px); align-items: center; }
+    .cta-copy { max-width: 30ch; }
+    .cta-art {
+      display: grid; place-items: center;
+      aspect-ratio: 4 / 3; width: 100%;
+      border: 1px dashed rgba(237, 231, 218, 0.28);
+      color: var(--faint); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+    }
+    img.cta-art { border: 0; }
+    .cta-panel h2 { margin: 0 0 20px; font-size: var(--h2); }
+    .cta-panel p:not(.eyebrow) { max-width: 46ch; margin: 0 0 34px; color: rgba(237,231,218,0.72); font-size: clamp(15px, 1.2vw, 18px); }
 
     /* ─────────────────────────── footer ─────────────────────────── */
     .site-footer { padding: clamp(64px, 8vw, 120px) var(--pad) 28px; background: var(--panel); border-top: 1px solid var(--line); }
     .footer-top { display: grid; grid-template-columns: 1.4fr 0.85fr 0.85fr 0.85fr; gap: 44px; }
-    .footer-newsletter h3 { margin: 0 0 22px; font-family: "Instrument Serif", Georgia, serif; font-size: clamp(28px, 3.2vw, 46px); font-weight: 400; }
+    .footer-newsletter h3 { margin: 0 0 22px; font-family: "Instrument Serif", Georgia, serif; font-size: var(--h2); font-weight: 400; line-height: 0.94; letter-spacing: -0.015em; }
     .footer-signup { display: flex; align-items: center; gap: 10px; max-width: 380px; }
     .footer-signup input { flex: 1; min-width: 0; padding: 10px 0; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--cream); font: inherit; font-size: 15px; }
     .footer-signup input::placeholder { color: var(--faint); }
     .footer-signup input:focus { outline: none; border-bottom-color: var(--gold); }
-    .footer-signup button { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 0; background: transparent; cursor: pointer; transition: background 240ms ease, color 240ms ease, border-color 240ms ease; }
+    .footer-signup button { flex: none; display: grid; place-items: center; padding: 0 22px; height: 44px; border: 1px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer; transition: background 240ms ease, color 240ms ease, border-color 240ms ease; }
     .footer-signup button:hover { background: var(--cream); border-color: var(--cream); color: var(--forest); }
     .footer-note { max-width: 32ch; margin: 16px 0 0; color: var(--faint); font-size: 13px; }
     .footer-label { margin: 0 0 16px; color: var(--gold); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
@@ -592,6 +643,7 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
       [data-reveal] { opacity: 1; transform: none; }
+      .hero-title h1, .to-l, .to-r { transform: none; }
       .loc-map { transform: none; }
     }
 
@@ -611,8 +663,8 @@
       .nav-inquire { height: 38px; padding: 0 14px; }
       .nav-inquire .nav-arrow { display: none; }
       .hero-note { display: none; }
-      .hero-title h1 span:nth-child(2) { padding-left: 8%; }
-      .hero-title h1 span:nth-child(3) { padding-left: 16%; }
+      .ht-row.b { justify-content: flex-start; gap: 0.4em; }
+      .ht-row.c { justify-content: flex-start; padding-left: 12%; }
       .immersive-copy { width: auto; inset: auto 0 14vh 0; padding: 0 var(--pad); }
       .about-foot { grid-template-columns: 1fr; }
       .numbers-grid { grid-template-columns: 1fr; height: auto; }
@@ -624,10 +676,14 @@
       .wwd-pin { grid-template-columns: 1fr; grid-template-rows: 42svh minmax(0, 1fr); }
       .wwd-media { grid-row: 1; }
       .wwd-panel { grid-row: 2; padding-top: clamp(28px, 5vh, 48px); }
+      .wwd-head { align-items: center; }
+      .wwd-head h2 { max-width: none; }
       .wwd-slide p { justify-self: start; text-align: left; }
       .pillar { grid-template-columns: 1fr; gap: 12px; }
       .pillar-thumb { display: none; }
       .loc-map { transform: none; }
+      .cta-panel { grid-template-columns: 1fr; }
+      .cta-art { aspect-ratio: 16 / 10; }
       .footer-top { grid-template-columns: 1fr; }
     }
   </style>
@@ -649,6 +705,7 @@
     </div>
   </header>
 
+  <div class="menu-scrim" data-menu-scrim></div>
   <nav class="site-menu" id="site-menu" aria-label="Site menu">
     <a href="#about">About</a>
     <a href="#numbers">At a Glance</a>
@@ -657,6 +714,10 @@
     <a href="#strategies">Strategies</a>
     <a href="#location">Location</a>
     <a href="#contact">Contact</a>
+    <p class="menu-foot">
+      <a href="mailto:info@gulfalts.com">info@gulfalts.com</a>
+      <span>Dubai, UAE</span>
+    </p>
   </nav>
 
   <main>
@@ -676,9 +737,9 @@
 
           <div class="hero-title" data-hero-fade>
             <h1 class="display" id="hero-title">
-              <span>Where better</span>
-              <span>business meets</span>
-              <span>better living.</span>
+              <span class="ht-row a"><span class="to-l">Where better</span></span>
+              <span class="ht-row b"><span class="to-l">business</span><span class="to-r">meets</span></span>
+              <span class="ht-row c"><span class="to-r">better living.</span></span>
             </h1>
           </div>
 
@@ -714,14 +775,13 @@
         <div></div>
         <div>
           <p>Since 2021, we&rsquo;ve assembled a concentrated portfolio anchored by long-term leases, dollarized income and blue-chip tenants &mdash; in a market with 800+ family offices in DIFC and $500M+ in daily real estate transactions.</p>
-          <a class="pill solid" href="mailto:info@gulfalts.com?subject=Gulf%20Alternatives%20enquiry">Start a conversation</a>
         </div>
       </div>
     </section>
 
     <!-- ══════════ 02b · selection rail ══════════ -->
     <section class="section selection" id="selection" aria-labelledby="selection-title">
-      <h2 class="sr-only" id="selection-title">Our selection</h2>
+      <h2 class="sr-only" id="selection-title">Selected views</h2>
       <div class="selection-track" data-selection-track tabindex="0" role="group" aria-label="Selected views, scrollable">
         <figure class="selection-item">
           <div><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park seen from above"></div>
@@ -746,10 +806,6 @@
       <div class="selection-controls">
         <button type="button" data-selection-prev>Prev</button>
         <button type="button" data-selection-next>Next</button>
-        <span class="selection-label">
-          Our Selection
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><circle cx="3" cy="3" r="1.4"/><circle cx="9" cy="3" r="1.4"/><circle cx="3" cy="9" r="1.4"/><circle cx="9" cy="9" r="1.4"/></svg>
-        </span>
       </div>
     </section>
 
@@ -855,10 +911,12 @@
       <div class="wwd-pin">
         <div class="wwd-panel">
           <div class="wwd-head">
-            <p class="eyebrow">What we do</p>
-            <h2 class="display" id="what-we-do-title">How We Invest</h2>
+            <div>
+              <p class="eyebrow">What we do</p>
+              <h2 class="display" id="what-we-do-title">How We Invest</h2>
+            </div>
+            <p class="wwd-counter"><b data-wwd-current>01</b> <i></i> <span data-wwd-total>04</span></p>
           </div>
-          <p class="wwd-counter"><b data-wwd-current>01</b> <i></i> <span data-wwd-total>04</span></p>
 
           <div class="wwd-slides">
             <article class="wwd-slide is-active" data-wwd-slide>
@@ -895,6 +953,7 @@
         <img class="strategies-bg" src="../assets/creative-park-hero.avif" alt="">
         <div class="strategies-panel" data-strategies-panel>
           <div class="strategies-card">
+            <p class="eyebrow">Our strategies</p>
             <h2 class="display" id="strategies-title">We shape spaces<br>for everyday life</h2>
             <span class="divider" aria-hidden="true"></span>
             <p>From wellness and fitness to fintech and automotive, each asset is built as a connected destination &mdash; where movement, work and community shape everyday life.</p>
@@ -1015,29 +1074,16 @@
     <!-- ══════════ 08 · cta ══════════ -->
     <section class="cta" id="cta" aria-labelledby="cta-title">
       <div class="cta-panel" data-reveal>
-        <div class="cta-blueprint" aria-hidden="true">
-          <svg viewBox="0 0 1200 500" preserveAspectRatio="xMaxYMid slice" fill="none" stroke="#ede7da" stroke-width="1">
-            <g opacity="0.9">
-              <rect x="700" y="60" width="440" height="380"/>
-              <rect x="726" y="86" width="388" height="328"/>
-              <path d="M700 250h440M920 60v380M760 120h130v130H760zM950 120h130v130H950zM760 290h130v110H760zM950 290h130v110H950z"/>
-              <circle cx="920" cy="250" r="86"/>
-              <circle cx="920" cy="250" r="52"/>
-              <circle cx="920" cy="250" r="18"/>
-              <path d="M480 60v380M540 60v380M600 60v380M480 150h120M480 250h120M480 350h120"/>
-            </g>
-          </svg>
-        </div>
-        <div>
+        <div class="cta-copy">
           <p class="eyebrow">Get in touch</p>
           <h2 class="display" id="cta-title">Build what comes next for Dubai</h2>
           <p>We partner with institutions, family offices and development partners building category-defining destinations in Dubai.</p>
-          <div class="cta-actions">
-            <a class="pill solid" href="mailto:info@gulfalts.com?subject=Gulf%20Alternatives%20enquiry">Contact us</a>
-            <span>or</span>
-            <a class="pill" href="https://www.gulfalts.com/" target="_blank" rel="noreferrer">Explore the venues</a>
-          </div>
+          <a class="pill solid" href="mailto:info@gulfalts.com?subject=Gulf%20Alternatives%20enquiry">Contact us</a>
         </div>
+
+        <!-- illustration slot: put your file in ../assets/ and replace the
+             element below with an img carrying the same cta-art class -->
+        <div class="cta-art" role="presentation"><span>Illustration</span></div>
       </div>
     </section>
   </main>
@@ -1118,19 +1164,38 @@
       const nav = document.querySelector('.nav');
       const toggle = document.querySelector('[data-menu-toggle]');
       const menu = document.querySelector('.site-menu');
+      const scrim = document.querySelector('[data-menu-scrim]');
       if (!nav || !toggle || !menu) return;
 
       const set = (open) => {
         menu.classList.toggle('is-open', open);
+        if (scrim) scrim.classList.toggle('is-open', open);
         toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
         if (open) nav.setAttribute('data-open', ''); else nav.removeAttribute('data-open');
         if (lenis) open ? lenis.stop() : lenis.start();
-        document.body.style.overflow = open ? 'hidden' : '';
       };
 
       toggle.addEventListener('click', () => set(!menu.classList.contains('is-open')));
-      menu.addEventListener('click', (e) => { if (e.target.tagName === 'A') set(false); });
+      if (scrim) scrim.addEventListener('click', () => set(false));
       addEventListener('keydown', (e) => { if (e.key === 'Escape') set(false); });
+
+      // capture phase, so this runs before the anchor's own smooth-scroll
+      // listener — Lenis is stopped while the menu is open, so the panel has
+      // to close (and Lenis restart) before the scroll is handed over.
+      menu.addEventListener('click', (e) => {
+        const link = e.target.closest('a[href^="#"]');
+        if (!link) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const target = document.querySelector(link.getAttribute('href'));
+        set(false);
+        if (!target) return;
+        requestAnimationFrame(() => {
+          if (lenis) lenis.scrollTo(target, { duration: 1.4, easing: (t) => 1 - Math.pow(1 - t, 3) });
+          else target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+          history.replaceState(null, '', link.getAttribute('href'));
+        });
+      }, true);
     })();
 
     /* ── reveal on scroll ── */
@@ -1149,6 +1214,7 @@
       const copy = document.querySelector('[data-immersive-copy]');
       const steps = [...document.querySelectorAll('[data-immersive-copy] .immersive-step')];
       const fades = [...document.querySelectorAll('[data-hero-fade]')];
+      const title = document.querySelector('.hero-title');
       const video = document.querySelector('[data-immersive-video]');
       if (!section || !copy || !steps.length) return;
 
@@ -1174,9 +1240,16 @@
         const range = section.offsetHeight - innerHeight;
         const progress = range > 0 ? Math.min(1, Math.max(0, -box.top / range)) : 0;
 
-        // title clears the frame just before the first step arrives
+        // the title flies apart and clears the frame just before the first
+        // step arrives — one property, read by every line's own transform
+        const p = Math.min(1, progress / (STEPS_START * 0.9));
         const fade = Math.max(0, 1 - progress / (STEPS_START * 0.85));
         fades.forEach((el) => el.style.setProperty('--hero-title-opacity', fade.toFixed(3)));
+        if (title) {
+          title.style.setProperty('--p', p.toFixed(4));
+          // holds full strength while it travels, then clears at the very end
+          title.style.setProperty('--title-fade', Math.max(0, Math.min(1, (1 - p) / 0.35)).toFixed(3));
+        }
 
         // the video scrubs across the whole hero scroll, uninterrupted — the
         // copy swap rides on top of it rather than restarting the playhead.
@@ -1195,6 +1268,152 @@
       addEventListener('resize', render, { passive: true });
       if (video) video.addEventListener('loadedmetadata', render);
       render();
+    })();
+
+    /* ── metrics: rules fill with scroll, figures count up on entry ── */
+    (() => {
+      const grid = document.querySelector('.numbers-grid');
+      const rules = document.querySelector('[data-numbers-rules]');
+      const values = [...document.querySelectorAll('.number-value[data-count]')];
+
+      if (grid && rules && !reduced) {
+        let pending = false;
+        const render = () => {
+          pending = false;
+          const r = grid.getBoundingClientRect();
+          const span = r.height + innerHeight * 0.4;
+          const p = Math.min(1, Math.max(0, (innerHeight * 0.9 - r.top) / span));
+          rules.style.setProperty('--fill', p.toFixed(4));
+        };
+        addEventListener('scroll', () => { if (!pending) { pending = true; requestAnimationFrame(render); } }, { passive: true });
+        addEventListener('resize', render, { passive: true });
+        render();
+      }
+
+      if (!values.length || reduced || !('IntersectionObserver' in window)) return;
+
+      const format = (el, v) => {
+        const dec = Number(el.dataset.decimals || 0);
+        const n = el.dataset.group !== undefined
+          ? Math.round(v).toLocaleString('en-US')
+          : v.toFixed(dec);
+        return (el.dataset.prefix || '') + n + (el.dataset.suffix || '');
+      };
+
+      const run = (el) => {
+        const target = Number(el.dataset.count);
+        const DUR = 1500, t0 = performance.now();
+        const tick = (now) => {
+          const t = Math.min(1, (now - t0) / DUR);
+          const eased = 1 - Math.pow(1 - t, 4);
+          el.textContent = format(el, target * eased);
+          if (t < 1) requestAnimationFrame(tick);
+          else el.textContent = format(el, target);
+        };
+        requestAnimationFrame(tick);
+      };
+
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((en) => {
+          if (!en.isIntersecting) return;
+          io.unobserve(en.target);
+          run(en.target);
+        });
+      }, { rootMargin: '0px 0px -18% 0px' });
+      values.forEach((el) => { el.textContent = format(el, 0); io.observe(el); });
+    })();
+
+    /* ── projects: scroll swaps the active venue while the stage stays pinned ── */
+    (() => {
+      const stage = document.querySelector('.projects-stage');
+      const cards = [...document.querySelectorAll('[data-project-card]')];
+      const shots = [...document.querySelectorAll('[data-project-bg]')];
+      if (!stage || !cards.length || reduced) return;
+
+      let index = 0, pending = false;
+      const render = () => {
+        pending = false;
+        const range = stage.offsetHeight - innerHeight;
+        if (range <= 0) return;
+        const progress = Math.min(0.9999, Math.max(0, -stage.getBoundingClientRect().top / range));
+        const i = Math.floor(progress * cards.length);
+        if (i === index) return;
+        index = i;
+        cards.forEach((el, k) => el.classList.toggle('is-active', k === i));
+        shots.forEach((el, k) => el.classList.toggle('is-revealed', k <= i));
+      };
+      addEventListener('scroll', () => { if (!pending) { pending = true; requestAnimationFrame(render); } }, { passive: true });
+      addEventListener('resize', render, { passive: true });
+      render();
+    })();
+
+    /* ── selection rail: an endless loop, so Next always has another tier ── */
+    (() => {
+      const track = document.querySelector('[data-selection-track]');
+      const prev = document.querySelector('[data-selection-prev]');
+      const next = document.querySelector('[data-selection-next]');
+      if (!track || !prev || !next) return;
+
+      const originals = [...track.children];
+      const setSize = originals.length;
+
+      // three copies of the set: the position normalises back to the middle
+      // one, so there is always a full set to move into either way. The stair
+      // pattern's period is the set size, so the seam is invisible.
+      for (let c = 0; c < 2; c++) {
+        for (const el of originals) {
+          const clone = el.cloneNode(true);
+          clone.setAttribute('aria-hidden', 'true');
+          track.appendChild(clone);
+        }
+      }
+
+      const step = () => {
+        const first = track.firstElementChild;
+        if (!first) return 0;
+        const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+        return first.getBoundingClientRect().width + gap;
+      };
+      const setWidth = () => step() * setSize;
+
+      // scroll-behavior on the element is smooth, so assigning scrollLeft
+      // would ANIMATE the wrap — the rail visibly rewound instead of looping.
+      // Every reposition has to be an instant jump.
+      const jump = (x) => {
+        const prevBehavior = track.style.scrollBehavior;
+        track.style.scrollBehavior = 'auto';
+        track.scrollLeft = x;
+        track.style.scrollBehavior = prevBehavior;
+      };
+
+      const recentre = () => { const w = setWidth(); if (w) jump(w); };
+
+      const normalise = () => {
+        const w = setWidth();
+        if (!w) return;
+        if (track.scrollLeft >= w * 2) jump(track.scrollLeft - w);
+        else if (track.scrollLeft < w * 0.5) jump(track.scrollLeft + w);
+      };
+
+      // wrap once the smooth scroll has settled, so the jump never lands
+      // mid-animation (the content is identical, so it is invisible)
+      let idle;
+      track.addEventListener('scroll', () => {
+        clearTimeout(idle);
+        idle = setTimeout(normalise, 140);
+      }, { passive: true });
+
+      prev.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: reduced ? 'auto' : 'smooth' }));
+      next.addEventListener('click', () => track.scrollBy({ left: step(), behavior: reduced ? 'auto' : 'smooth' }));
+      addEventListener('resize', recentre, { passive: true });
+
+      // card widths depend on loaded images, so centre once layout is real
+      recentre();
+      addEventListener('load', recentre);
+      if ('ResizeObserver' in window) {
+        let first = true;
+        new ResizeObserver(() => { if (first) { first = false; return; } recentre(); }).observe(track);
+      }
     })();
 
     /* ── metrics: rules fill with scroll, figures count up on entry ── */
