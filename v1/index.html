@@ -126,7 +126,13 @@
       z-index: 0;
       overflow: hidden;
       background: #73736d;
-      clip-path: inset(0 max(0px, calc((100vw - 100vh) / 2 * var(--hero-crop, 0))) round calc(78px * var(--hero-crop, 0)));
+      /* ponytail: the old rule only inset the SIDES, which squares the image
+         on a landscape screen but leaves a tall sliver on a portrait one.
+         Inset whichever axis is longer so it lands square either way. */
+      clip-path: inset(
+        calc(max(0px, (100vh - 100vw) / 2) * var(--hero-crop, 0))
+        calc(max(0px, (100vw - 100vh) / 2) * var(--hero-crop, 0))
+        round calc(78px * var(--hero-crop, 0)));
       transform: scale(calc(1 - (1 - var(--hero-end-scale, 0.44)) * var(--hero-light, 0)));
       transform-origin: center bottom;
       will-change: transform, clip-path;
@@ -231,6 +237,25 @@
     /* pill is dark, so the CTA stays the light chip that reads against it */
     .hero-nav.is-condensed .nav-cta { background: #fff; color: #0b0b0b; }
     .nav-cta:hover { transform: translateY(-1px); }
+
+    /* burger is mobile-only; the CTA moves inside the panel it opens */
+    .nav-burger { display: none; flex: none; width: 40px; height: 40px; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
+    .nav-burger i { display: block; width: 22px; height: 1px; margin: 5px auto; background: currentColor; transition: transform 380ms cubic-bezier(.32,.72,0,1); }
+    .hero-nav.is-menu-open .nav-burger i:first-child { transform: translateY(3px) rotate(45deg); }
+    .hero-nav.is-menu-open .nav-burger i:last-child { transform: translateY(-3px) rotate(-45deg); }
+
+    .mobile-menu {
+      position: fixed; inset: 0; z-index: 998;
+      display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+      padding: 96px 28px 40px;
+      background: rgba(11, 11, 11, 0.97);
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 360ms ease;
+    }
+    .mobile-menu.is-open { opacity: 1; pointer-events: auto; }
+    .mobile-menu a { color: #fff; font-size: clamp(24px, 7vw, 34px); letter-spacing: -0.02em; text-decoration: none; }
+    .mobile-menu .mobile-menu-cta { margin-top: 14px; padding: 12px 26px; border-radius: 8px; background: #fff; color: #0b0b0b; font-size: 15px; }
 
     .hero-copy {
       position: absolute;
@@ -364,7 +389,7 @@
     .immersive-step h2 { margin: 0 0 12px; font-size: clamp(26px, 3vw, 40px); font-weight: 400; letter-spacing: -0.03em; line-height: 1.1; }
     .immersive-step p { margin: 0; color: rgba(255, 255, 255, 0.82); font-size: clamp(15px, 1.3vw, 18px); line-height: 1.5; }
 
-    @media (min-width: 650px) {
+    @media (min-width: 0px) {
       .scale-grid {
         font-size: min(0.5625vw, 0.88vh);
         /* ponytail: the scroll left after the zoom completes is what drives the
@@ -739,8 +764,9 @@
       .hero-pin { min-height: 0; padding: 34px 28px 28px; }
       .hero-media, .hero-media::after { inset: 0; }
       .hero-nav { top: 18px; width: calc(100% - 40px); gap: 16px; }
-      .nav-links { display: none; }
-      .nav-cta { padding: 8px 16px; font-size: 12px; }
+      .nav-links, .nav-cta { display: none; }
+      .nav-burger { display: block; }
+      .mobile-menu { display: flex; }
       .hero-copy { left: 28px; right: 28px; bottom: 64px; }
       h1 { max-width: 10ch; flex-direction: column; gap: 24px; font-size: clamp(40px, 11vw, 64px); line-height: 0.94; white-space: normal; }
       .hero-scroll-cue { right: auto; bottom: 6vh; }
@@ -753,6 +779,9 @@
       .metric-value { font-size: clamp(26px, 6vw, 38px); }
       .metric-label { max-width: 20ch; font-size: 14px; line-height: 1.08; }
       .immersive { padding: 0; }
+      /* the grid stays — only its unit shrinks, so the mosaic fits the
+         viewport before the zoom takes over */
+      .scale-grid { font-size: min(0.71vw, 0.55vh); height: 620vh; }
       .portfolio { padding: 60px 20px 36px; }
       .portfolio-head { display: block; margin-bottom: 38px; }
       .project-grid { grid-template-columns: 1fr 1fr; gap: 30px 12px; }
@@ -814,7 +843,20 @@
       <a href="#dubai">Location</a>
     </nav>
     <a class="nav-cta" href="mailto:info@gulfalts.com?subject=Dubai%20Creative%20Park%20enquiry">Get in Touch</a>
+    <button class="nav-burger" type="button" data-menu-toggle aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+      <i></i><i></i>
+    </button>
   </header>
+
+  <nav class="mobile-menu" id="mobile-menu" aria-label="Mobile menu">
+    <a href="#about">About</a>
+    <a href="#metrics">At a Glance</a>
+    <a href="#portfolio">Projects</a>
+    <a href="#our-strategies">Strategies</a>
+    <a href="#what-we-do">What We Do</a>
+    <a href="#dubai">Location</a>
+    <a class="mobile-menu-cta" href="mailto:info@gulfalts.com?subject=Dubai%20Creative%20Park%20enquiry">Get in Touch</a>
+  </nav>
   <main>
     <section class="section hero" id="hero" aria-labelledby="hero-title">
       <div class="hero-pin hero__pin">
@@ -1283,6 +1325,35 @@
     // 'auto' (it has to be — smooth fights Lenis). Route them through
     // lenis.scrollTo so they animate, with a native smooth fallback when
     // Lenis is off (reduced motion falls through to an instant jump).
+    // mobile menu: the nav CTA lives in here once the bar collapses
+    (() => {
+      const bar = document.querySelector('.hero-nav');
+      const burger = document.querySelector('[data-menu-toggle]');
+      const panel = document.querySelector('.mobile-menu');
+      if (!bar || !burger || !panel) return;
+      const set = (open) => {
+        panel.classList.toggle('is-open', open);
+        bar.classList.toggle('is-menu-open', open);
+        burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (lenis) open ? lenis.stop() : lenis.start();
+      };
+      burger.addEventListener('click', () => set(!panel.classList.contains('is-open')));
+      addEventListener('keydown', (e) => { if (e.key === 'Escape') set(false); });
+      // capture, so this beats the anchor's own smooth-scroll handler while
+      // Lenis is still stopped
+      panel.addEventListener('click', (e) => {
+        const link = e.target.closest('a[href^="#"]');
+        if (!link) return;
+        e.preventDefault(); e.stopPropagation();
+        const target = document.querySelector(link.getAttribute('href'));
+        set(false);
+        if (target) requestAnimationFrame(() => {
+          if (lenis) lenis.scrollTo(target, { duration: 1.4, easing: (t) => 1 - Math.pow(1 - t, 3) });
+          else target.scrollIntoView({ behavior: 'smooth' });
+        });
+      }, true);
+    })();
+
     document.querySelectorAll('a[href^="#"]').forEach((link) => {
       link.addEventListener('click', (e) => {
         const id = link.getAttribute('href');
@@ -1613,7 +1684,7 @@
       };
       const kick = () => { if (!running) { running = true; requestAnimationFrame(frame); } };
 
-      if (matchMedia('(min-width:650px)').matches && !matchMedia('(prefers-reduced-motion:reduce)').matches) {
+      if (!matchMedia('(prefers-reduced-motion:reduce)').matches) {
         addEventListener('resize', () => { measure(); kick(); });
         addEventListener('scroll', kick, { passive: true });
         measure(); kick();
