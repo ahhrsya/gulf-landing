@@ -85,7 +85,7 @@
       border-radius: 999px;
       background: transparent;
       color: var(--cream);
-      font-size: 13px; letter-spacing: 0.02em; text-decoration: none;
+      font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none;
       cursor: pointer;
       transition: background 260ms ease, border-color 260ms ease, color 260ms ease;
     }
@@ -125,7 +125,6 @@
     .nav[data-open] .nav-bars i:last-child { transform: translateY(-3px) rotate(-45deg); }
     .nav-brand { display: inline-flex; }
     .nav-brand img { width: 92px; }
-    .nav-arrow { width: 16px; height: 16px; flex: none; }
 
     /* label roll: two stacked copies, the live one leaves upward while its
        duplicate arrives from below — the hover behaviour on the reference nav */
@@ -536,7 +535,7 @@
     .loc-item-detail a {
       display: inline-flex; align-items: center;
       padding: 9px 20px; border: 1px solid var(--line); border-radius: 999px;
-      color: var(--cream); font-size: 13px; letter-spacing: 0.02em; text-decoration: none;
+      color: var(--cream); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none;
       transition: background 260ms ease, border-color 260ms ease, color 260ms ease;
     }
     .loc-item-detail a:hover { background: var(--cream); border-color: var(--cream); color: var(--forest); }
@@ -609,7 +608,7 @@
     .footer-signup input { flex: 1; min-width: 0; padding: 10px 0; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--cream); font: inherit; font-size: 15px; }
     .footer-signup input::placeholder { color: var(--faint); }
     .footer-signup input:focus { outline: none; border-bottom-color: var(--gold); }
-    .footer-signup button { flex: none; display: grid; place-items: center; padding: 0 22px; height: 44px; border: 1px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer; transition: background 240ms ease, color 240ms ease, border-color 240ms ease; }
+    .footer-signup button { flex: none; display: grid; place-items: center; padding: 0 22px; height: 44px; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer; transition: background 240ms ease, color 240ms ease, border-color 240ms ease; }
     .footer-signup button:hover { background: var(--cream); border-color: var(--cream); color: var(--forest); }
     .footer-note { max-width: 32ch; margin: 16px 0 0; color: var(--faint); font-size: 13px; }
     .footer-label { margin: 0 0 16px; color: var(--gold); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
@@ -644,7 +643,6 @@
       .nav-pill { height: 52px; padding: 0 6px 0 16px; }
       .nav-brand img { width: 78px; }
       .nav-inquire { height: 38px; padding: 0 14px; }
-      .nav-inquire .nav-arrow { display: none; }
       .hero-note { display: none; }
       .hero-title { text-align: center; }
       .ht-row.a, .ht-row.b, .ht-row.c { justify-content: center; gap: 0.4em; padding-left: 0; }
@@ -683,7 +681,6 @@
       </a>
       <a class="nav-inquire" href="mailto:info@gulfalts.com?subject=Gulf%20Alternatives%20enquiry">
         <span class="roll"><span>Inquire</span><span aria-hidden="true">Inquire</span></span>
-        <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
     </div>
   </header>
@@ -767,24 +764,24 @@
       <h2 class="sr-only" id="selection-title">Selected views</h2>
       <div class="selection-viewport">
         <div class="selection-track" data-selection-track aria-hidden="true">
-        <figure class="selection-item">
-          <div><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park seen from above"></div>
-        </figure>
-        <figure class="selection-item">
-          <div><img src="../assets/fitness-day.png" alt="Fitness and wellness space at Dubai Creative Park"></div>
-        </figure>
-        <figure class="selection-item">
-          <div><img src="../assets/fintech-district.avif" alt="Dubai Fintech District business park"></div>
-        </figure>
-        <figure class="selection-item">
-          <div><img src="../assets/fitness-night.jpg" alt="Creative Park interior at night"></div>
-        </figure>
-        <figure class="selection-item">
-          <div><img src="../assets/v8-district.avif" alt="V8 District automotive commercial facility"></div>
-        </figure>
-        <figure class="selection-item">
-          <div><img src="../assets/motor-garten.avif" alt="Motor Garten automotive commercial facility"></div>
-        </figure>
+          <figure class="selection-item">
+            <div><img src="../assets/69d672deee43890227380c89_photo_2026-04-08%2022.21.36.avif" alt="Gulfalts development" loading="lazy"></div>
+          </figure>
+          <figure class="selection-item">
+            <div><img src="../assets/69d6726cb133d35bd4ce04ee_image-gulfalts.avif" alt="Gulfalts portfolio" loading="lazy"></div>
+          </figure>
+          <figure class="selection-item">
+            <div><img src="../assets/69cd0f6e6e2110634ffd47e1_69b687099f42089ab54ff5d3_251021_D01" alt="Auto Park" loading="lazy"></div>
+          </figure>
+          <figure class="selection-item">
+            <div><img src="../assets/69cd0f6e6e2110634ffd47e4_69b686d3cdd57770e91b2f73_concept%25" alt="Concept view" loading="lazy"></div>
+          </figure>
+          <figure class="selection-item">
+            <div><img src="../assets/69934e9960a1970bfc076912_4a38a8e57c87fd5c774f5717e08b433f_im" alt="Asset value" loading="lazy"></div>
+          </figure>
+          <figure class="selection-item">
+            <div><img src="../assets/69934ee53c551dbab874d580_img-start.avif" alt="Getting started" loading="lazy"></div>
+          </figure>
         </div>
       </div>
     </section>
@@ -915,9 +912,9 @@
 
         <div class="wwd-media">
           <div class="wwd-shot is-revealed" data-wwd-shot><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park"></div>
-          <div class="wwd-shot" data-wwd-shot><img src="../assets/fintech-district.avif" alt="Dubai Fintech District"></div>
-          <div class="wwd-shot" data-wwd-shot><img src="../assets/v8-district.avif" alt="V8 District"></div>
-          <div class="wwd-shot" data-wwd-shot><img src="../assets/motor-garten.avif" alt="Motor Garten"></div>
+          <div class="wwd-shot" data-wwd-shot><img src="../assets/69aec5168c2845cbacf25f24_modern-architectural-structure-with" alt="Contemporary architecture in Dubai" loading="lazy"></div>
+          <div class="wwd-shot" data-wwd-shot><img src="../assets/6a4b0fed8500609b56f38466_premium-automotive-workshop-space-f" alt="Automotive workshop space" loading="lazy"></div>
+          <div class="wwd-shot" data-wwd-shot><img src="../assets/6a7dea59cc5281ac2bc28d90_card-directory.webp" alt="Gulfalts directory" loading="lazy"></div>
         </div>
       </div>
     </section>
@@ -925,7 +922,7 @@
     <!-- ══════════ 06 · strategies ══════════ -->
     <section class="strategies" id="strategies" aria-labelledby="strategies-title">
       <div class="strategies-pin">
-        <img class="strategies-bg" src="../assets/creative-park-hero.avif" alt="">
+        <img class="strategies-bg" src="../assets/fitness-night.jpg" alt="">
         <div class="strategies-panel" data-strategies-panel>
           <div class="strategies-card">
             <p class="eyebrow">Our strategies</p>
@@ -1056,8 +1053,7 @@
           <a class="pill solid" href="mailto:info@gulfalts.com?subject=Gulf%20Alternatives%20enquiry">Contact us</a>
         </div>
 
-        <!-- illustration slot: put your file in ../assets/ and replace the
-             element below with an img carrying the same cta-art class -->
+        <!-- illustration slot: swap the div below for an img with class cta-art -->
         <div class="cta-art" role="presentation"><span>Illustration</span></div>
       </div>
     </section>
