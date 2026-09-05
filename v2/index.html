@@ -380,20 +380,19 @@
        Mount is opaque enough to read against the photographic backdrop. */
     .polaroid {
       padding: clamp(10px, 0.9vw, 16px);
-      border: 1px solid var(--line);
-      background: rgba(10, 19, 16, 0.82);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(6, 12, 9, 0.1);
+      background: #fff;
+      color: var(--forest);
       transition: background 400ms ease, border-color 400ms ease;
     }
-    .project-card:hover .polaroid { background: rgba(18, 41, 31, 0.9); border-color: rgba(237, 231, 218, 0.3); }
+    .project-card:hover .polaroid { background: #fbfaf7; border-color: rgba(6, 12, 9, 0.22); }
     .polaroid figure { position: relative; margin: 0; overflow: hidden; background: #0b1512; }
     .polaroid img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.6) brightness(0.86); transition: transform 900ms cubic-bezier(.16,1,.3,1), filter 500ms ease; }
     .project-card:hover .polaroid img { transform: scale(1.04); filter: saturate(0.8) brightness(0.98); }
     .polaroid-body { padding: clamp(18px, 1.6vw, 26px) 2px clamp(6px, 0.6vw, 10px); }
     .polaroid h3 { margin: 0 0 12px; font-family: "Instrument Serif", Georgia, serif; font-size: clamp(19px, 1.65vw, 26px); font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; }
-    .polaroid-meta { margin: 0; color: var(--dim); font-size: clamp(13px, 1.05vw, 15px); line-height: 1.5; }
-    .polaroid-plus { display: block; margin-top: clamp(16px, 1.6vw, 26px); color: var(--gold); font-size: 20px; line-height: 1; transition: transform 500ms cubic-bezier(.16,1,.3,1); }
+    .polaroid-meta { margin: 0; color: rgba(18, 41, 31, 0.62); font-size: clamp(13px, 1.05vw, 15px); line-height: 1.5; }
+    .polaroid-plus { display: block; margin-top: clamp(16px, 1.6vw, 26px); color: #8a6c33; font-size: 20px; line-height: 1; transition: transform 500ms cubic-bezier(.16,1,.3,1); }
     .project-card:hover .polaroid-plus { transform: rotate(90deg); }
 
     .polaroid figure { aspect-ratio: 1 / 1.06; }
@@ -478,14 +477,17 @@
     .strategies-pin { position: sticky; top: 0; height: 100svh; display: grid; place-items: center; overflow: hidden; }
     .strategies-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(0.55) brightness(0.58); }
     .strategies-panel {
+      /* starts wide enough to hold the card outright, so the card's own width
+         never depends on the panel — otherwise the copy reflowed on every
+         frame of the growth. */
+      --start-w: min(700px, 92vw);
       position: relative; z-index: 2;
       display: grid; place-items: center;
-      width: calc(34vw + 66vw * var(--open, 0));
+      width: calc(var(--start-w) + (100vw - var(--start-w)) * var(--open, 0));
       height: calc(76svh + 24svh * var(--open, 0));
-      min-width: 300px;
       background: var(--forest);
     }
-    .strategies-card { width: min(620px, 82%); padding: 0 clamp(16px, 2vw, 28px); text-align: center; }
+    .strategies-card { width: min(560px, 84vw); padding: 0 clamp(16px, 2vw, 28px); text-align: center; }
     .strategies-card h2 { margin: 0 0 18px; font-size: var(--h2); }
     .strategies-card .divider { display: block; width: 46px; height: 1px; margin: 0 auto 20px; background: var(--gold); }
     .strategies-card p { margin: 0; color: var(--dim); font-size: clamp(14px, 1.15vw, 17px); }
@@ -493,7 +495,7 @@
     @media (prefers-reduced-motion: reduce) {
       .strategies { height: auto; }
       .strategies-pin { position: static; }
-      .strategies-panel { width: min(560px, 86vw); height: auto; padding: clamp(40px, 6vw, 80px) 0; }
+      .strategies-panel { width: min(700px, 92vw); height: auto; padding: clamp(40px, 6vw, 80px) 0; }
     }
     .pillars { position: relative; z-index: 2; padding: clamp(56px, 8vw, 120px) var(--pad) clamp(84px, 11vw, 160px); background: var(--forest); }
     .pillar {
@@ -666,8 +668,8 @@
       .nav-inquire { height: 38px; padding: 0 14px; }
       .nav-inquire .nav-arrow { display: none; }
       .hero-note { display: none; }
-      .ht-row.b { justify-content: flex-start; gap: 0.4em; }
-      .ht-row.c { justify-content: flex-start; padding-left: 12%; }
+      .hero-title { text-align: center; }
+      .ht-row.a, .ht-row.b, .ht-row.c { justify-content: center; gap: 0.4em; padding-left: 0; }
       .immersive-copy { width: auto; inset: auto 0 14vh 0; padding: 0 var(--pad); }
       .about-foot { grid-template-columns: 1fr; }
       .numbers-grid { grid-template-columns: 1fr; height: auto; }
