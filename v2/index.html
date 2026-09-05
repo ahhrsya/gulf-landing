@@ -297,20 +297,14 @@
       margin: 0; color: var(--cream); font-size: clamp(13px, 1.05vw, 15px); line-height: 1.35;
     }
 
-    /* hero scroll progress — fills across the foot of the pinned frame.
-       Ticks mark where each copy step takes over. */
+    /* hero scroll progress — full-bleed hairline flush to the bottom edge */
     .hero-progress {
-      position: absolute; z-index: 5; left: clamp(24px, 5vw, 76px); right: clamp(24px, 5vw, 76px);
-      bottom: clamp(26px, 4vh, 44px); height: 1px;
+      position: absolute; z-index: 5; inset: auto 0 0 0; height: 2px;
       background: rgba(240, 236, 228, 0.18);
     }
     .hero-progress-fill {
       position: absolute; inset: 0; transform-origin: left center;
       transform: scaleX(var(--hp, 0)); background: var(--cream);
-    }
-    .hero-progress-tick {
-      position: absolute; top: -2px; width: 1px; height: 5px;
-      background: rgba(240, 236, 228, 0.34);
     }
 
     /* ─────────────────────────── about ─────────────────────────── */
@@ -718,7 +712,6 @@
         border: 0; border-top: 1px solid rgba(240, 236, 228, 0.22);
         padding: 16px 0 0;
       }
-      .hero-progress { left: var(--pad); right: var(--pad); bottom: 6vh; }
       .about-foot { grid-template-columns: 1fr; }
       .numbers-grid { grid-template-columns: 1fr; height: auto; }
       .numbers-rules { display: none; }
@@ -842,9 +835,6 @@
 
           <div class="hero-progress" data-hero-progress aria-hidden="true">
             <span class="hero-progress-fill"></span>
-            <span class="hero-progress-tick" style="left:26%"></span>
-            <span class="hero-progress-tick" style="left:51%"></span>
-            <span class="hero-progress-tick" style="left:75%"></span>
           </div>
       </div>
     </section>
@@ -1294,8 +1284,7 @@
       if (!section || !copy || !steps.length) return;
 
       // the title owns the first quarter of the hero scroll; the three
-      // Fintech District steps split what's left. The progress ticks in the
-      // markup are placed to match: 26%, then each third of the remainder.
+      // Fintech District steps split what's left.
       const STEPS_START = 0.26;
 
       // scroll-scrubbed video: target time is lerped in its own rAF loop so
