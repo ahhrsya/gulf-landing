@@ -179,7 +179,10 @@
     .nav[data-open] .nav-pill { background: transparent; border-color: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
 
     /* ────────────────── hero = full-bleed immersive scroll ────────────────── */
-    .hero { position: relative; height: 440vh; background: var(--void); }
+    /* the hero's height IS the scrub track — the 10s clip is mapped across
+       (height - 100vh). 720vh gives the walkthrough ~620vh to play out, so the
+       camera drifts instead of racing. Shorten this and the video speeds up. */
+    .hero { position: relative; height: 720vh; background: var(--void); }
     .hero-pin { position: sticky; top: 0; height: 100svh; overflow: hidden; }
     .hero-media { position: absolute; inset: 0; background: #0b1512; }
     .hero-media video,
@@ -1228,7 +1231,7 @@
       const scrubTick = () => {
         const diff = targetTime - playhead;
         if (Math.abs(diff) < 0.008) { playhead = targetTime; videoRaf = null; }
-        else { playhead += diff * 0.18; videoRaf = requestAnimationFrame(scrubTick); }
+        else { playhead += diff * 0.12; videoRaf = requestAnimationFrame(scrubTick); }
         if (video && video.readyState >= 1) video.currentTime = playhead;
       };
       const scrubTo = (t) => { targetTime = t; if (videoRaf === null) videoRaf = requestAnimationFrame(scrubTick); };

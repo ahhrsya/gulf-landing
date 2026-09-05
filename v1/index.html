@@ -367,10 +367,13 @@
     @media (min-width: 650px) {
       .scale-grid {
         font-size: min(0.5625vw, 0.88vh);
-        /* ponytail: the ~21% of scroll left after the zoom completes is what
-           the three copy steps share — 760vh gives each step ~53vh, so they
-           hold long enough to read instead of flicking past. */
-        height: 760vh;
+        /* ponytail: the scroll left after the zoom completes is what drives the
+           scrubbed video AND the three copy steps. At 760vh/ZOOM_END .79 that
+           tail was only ~139vh — the 10s clip ripped past in ~2s. Raised to
+           970vh with HOLD_IN/RUN cut to .20/.40 so the zoom keeps the same
+           absolute scroll cost (~520vh) and the tail grows to ~348vh: video
+           2.5x slower, each copy step ~116vh instead of ~46vh. */
+        height: 970vh;
         padding: 0;
       }
       .scale-grid-wrap { position: sticky; top: 0; height: 100svh }
@@ -1588,7 +1591,7 @@
     document.querySelectorAll('.js-scale-grid').forEach(root => {
       const content = root.querySelector('.js-scale');
       const ref = root.querySelector('.js-scale-ref');
-      const HOLD_IN = 0.26, RUN = 0.53;          // dwell zoomed-out, then zoom over 53% of the scroll
+      const HOLD_IN = 0.20, RUN = 0.40;          // dwell zoomed-out, then zoom over 40% of the scroll
       let cur = 0, max = 1, running = false;
       const clamp = v => v < 0 ? 0 : v > 1 ? 1 : v;
 
@@ -1629,11 +1632,12 @@
       const video = document.querySelector('[data-immersive-video]');
       if (!section || !copy || !steps.length) return;
 
-      // ponytail: the scale-grid finishes its zoom at HOLD_IN + RUN (.26+.53)
+      // ponytail: the scale-grid finishes its zoom at HOLD_IN + RUN (.20+.40)
       // of the section's scroll. Copy stays hidden until then — before that
       // the frame is still a grid of small tiles, not a full-bleed image —
-      // and the steps split whatever scroll is left after it.
-      const ZOOM_END = 0.79;
+      // and the steps split whatever scroll is left after it. Must stay in
+      // sync with HOLD_IN + RUN in the scale-grid script above.
+      const ZOOM_END = 0.60;
 
       // ponytail: scroll-scrubbed video. The asset is re-encoded all-keyframe
       // (asset-scroll-scrub.mp4) so seeking is instant — the source had 2
@@ -1649,7 +1653,7 @@
           playhead = targetTime;
           videoRaf = null;
         } else {
-          playhead += diff * 0.18;
+          playhead += diff * 0.12;
           videoRaf = requestAnimationFrame(scrubTick);
         }
         if (video.readyState >= 1) video.currentTime = playhead;
