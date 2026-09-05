@@ -1145,7 +1145,7 @@
     /* ── smooth scroll (same setup as v1) ── */
     let lenis = null;
     if (window.Lenis && !reduced) {
-      lenis = new Lenis({ duration: 0.8, smoothWheel: true });
+      lenis = new Lenis({ duration: 1.15, smoothWheel: true, lerp: 0.075 });
       const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
       requestAnimationFrame(raf);
     }
@@ -1227,11 +1227,17 @@
 
       // scroll-scrubbed video: target time is lerped in its own rAF loop so
       // the playhead glides instead of stepping frame to frame.
-      let targetTime = 0, playhead = 0, videoRaf = null;
-      const scrubTick = () => {
+      // exponential smoothing, framerate-independent: a fixed per-frame lerp
+      // converges twice as fast on a 120Hz display as on 60Hz, so the glide
+      // felt different per machine. 1 - e^(-k·dt) is the same curve in wall
+      // time everywhere; k=7 matches the old 0.12-at-60fps feel.
+      let targetTime = 0, playhead = 0, videoRaf = null, lastT = 0;
+      const scrubTick = (t) => {
+        const dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 1 / 60;
+        lastT = t;
         const diff = targetTime - playhead;
-        if (Math.abs(diff) < 0.008) { playhead = targetTime; videoRaf = null; }
-        else { playhead += diff * 0.12; videoRaf = requestAnimationFrame(scrubTick); }
+        if (Math.abs(diff) < 0.004) { playhead = targetTime; videoRaf = null; lastT = 0; }
+        else { playhead += diff * (1 - Math.exp(-7 * dt)); videoRaf = requestAnimationFrame(scrubTick); }
         if (video && video.readyState >= 1) video.currentTime = playhead;
       };
       const scrubTo = (t) => { targetTime = t; if (videoRaf === null) videoRaf = requestAnimationFrame(scrubTick); };

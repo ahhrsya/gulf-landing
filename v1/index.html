@@ -1271,7 +1271,7 @@
     // scroll-jack sections below need no changes to keep working with it.
     let lenis = null;
     if (window.Lenis && !reducedMotion) {
-      lenis = new Lenis({ duration: 0.8, smoothWheel: true });
+      lenis = new Lenis({ duration: 1.15, smoothWheel: true, lerp: 0.075 });
       const raf = (time) => {
         lenis.raf(time);
         requestAnimationFrame(raf);
@@ -1640,20 +1640,29 @@
       const ZOOM_END = 0.60;
 
       // ponytail: scroll-scrubbed video. The asset is re-encoded all-keyframe
-      // (asset-scroll-scrub.mp4) so seeking is instant — the source had 2
+      // AND motion-interpolated to 48fps (asset-scroll-scrub.mp4) so seeking is
+      // instant and the frame steps are half as coarse — the source had 2
       // keyframes in 240 frames, which stutters badly when scrubbed. Target
       // time is lerped in its own rAF loop rather than set straight from the
       // scroll handler, so the playhead glides instead of stepping.
+      // exponential smoothing, framerate-independent: a fixed per-frame lerp
+      // converges twice as fast on a 120Hz display as on 60Hz, so the glide
+      // felt different per machine. 1 - e^(-k·dt) is the same curve in wall
+      // time everywhere; k=7 matches the old 0.12-at-60fps feel.
       let targetTime = 0;
       let playhead = 0;
       let videoRaf = null;
-      const scrubTick = () => {
+      let lastT = 0;
+      const scrubTick = (t) => {
+        const dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 1 / 60;
+        lastT = t;
         const diff = targetTime - playhead;
-        if (Math.abs(diff) < 0.008) {
+        if (Math.abs(diff) < 0.004) {
           playhead = targetTime;
           videoRaf = null;
+          lastT = 0;
         } else {
-          playhead += diff * 0.12;
+          playhead += diff * (1 - Math.exp(-7 * dt));
           videoRaf = requestAnimationFrame(scrubTick);
         }
         if (video.readyState >= 1) video.currentTime = playhead;
