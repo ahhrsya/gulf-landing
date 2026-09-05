@@ -238,28 +238,53 @@
       opacity: var(--hero-title-opacity, 1); transition: opacity 400ms ease;
     }
 
-    /* copy sits bottom-left, metrics bottom-right, both on one baseline —
-       a single grid row so the two align no matter how tall the copy runs. */
+    /* the copy block is just a positioning frame across the bottom of the
+       hero — each step composes itself inside it. */
     .immersive-copy {
-      position: absolute; inset: auto 0 clamp(48px, 8vh, 96px) 0; z-index: 5;
-      display: grid; grid-template-columns: minmax(0, 1fr) auto;
-      align-items: end; column-gap: clamp(24px, 4vw, 64px);
+      position: absolute; inset: auto 0 clamp(56px, 9vh, 104px) 0; z-index: 5;
       padding: 0 clamp(24px, 5vw, 76px);
       color: var(--cream); pointer-events: none;
       opacity: 0; transition: opacity 600ms ease;
       text-shadow: 0 2px 30px rgba(0, 0, 0, 0.5);
     }
     .immersive-copy.is-visible { opacity: 1; }
-    .immersive-steps { position: relative; display: grid; width: min(620px, 48vw); }
+    .immersive-steps { position: relative; display: grid; width: 100%; }
     .immersive-step {
-      grid-area: 1 / 1; align-self: end; opacity: 0; transform: translateY(18px);
+      grid-area: 1 / 1; align-items: end; opacity: 0; transform: translateY(18px);
       transition: opacity 900ms ease, transform 900ms cubic-bezier(.16,1,.3,1);
     }
     .immersive-step.is-active { opacity: 1; transform: none; }
-    .immersive-step h2 { margin: 0 0 14px; font-size: clamp(26px, 3.4vw, 48px); }
-    .immersive-step p { margin: 0; max-width: 44ch; color: var(--dim); font-size: clamp(15px, 1.3vw, 18px); }
+    .istep-copy h2 { margin: 0 0 14px; font-size: clamp(26px, 3.4vw, 48px); }
+    .istep-copy p { margin: 0; max-width: 44ch; color: var(--dim); font-size: clamp(15px, 1.3vw, 18px); }
 
-    /* venue spec rail — attributes, not invented figures */
+    /* three arrangements, one per step, so the frame recomposes on scroll */
+    .step-split {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: clamp(24px, 4vw, 64px);
+    }
+    .step-split .istep-copy { max-width: min(620px, 48vw); }
+
+    .step-stack { display: grid; row-gap: clamp(20px, 3vh, 34px); justify-items: start; }
+    .step-stack .istep-copy { max-width: min(720px, 62vw); }
+    .step-stack .immersive-metrics {
+      grid-auto-flow: column; grid-auto-columns: max-content;
+      gap: clamp(28px, 5vw, 72px); text-align: left;
+      border-right: 0; padding-right: 0;
+      border-top: 1px solid rgba(240, 236, 228, 0.22); padding-top: clamp(14px, 2vh, 20px);
+    }
+
+    .step-mirror {
+      display: grid; grid-template-columns: auto minmax(0, 1fr);
+      column-gap: clamp(24px, 4vw, 64px); justify-items: end;
+    }
+    .step-mirror .istep-copy { max-width: min(620px, 48vw); text-align: right; }
+    .step-mirror .istep-copy p { margin-left: auto; }
+    .step-mirror .immersive-metrics {
+      text-align: left; border-right: 0; padding-right: 0;
+      border-left: 1px solid rgba(240, 236, 228, 0.22); padding-left: clamp(14px, 1.6vw, 22px);
+    }
+
+    /* venue spec rail — real attributes from the venue page, not invented figures */
     .immersive-metrics {
       display: grid; gap: clamp(14px, 2vh, 22px); margin: 0; text-align: right;
       border-right: 1px solid rgba(240, 236, 228, 0.22); padding-right: clamp(14px, 1.6vw, 22px);
@@ -270,6 +295,22 @@
     }
     .immersive-metrics dd {
       margin: 0; color: var(--cream); font-size: clamp(13px, 1.05vw, 15px); line-height: 1.35;
+    }
+
+    /* hero scroll progress — fills across the foot of the pinned frame.
+       Ticks mark where each copy step takes over. */
+    .hero-progress {
+      position: absolute; z-index: 5; left: clamp(24px, 5vw, 76px); right: clamp(24px, 5vw, 76px);
+      bottom: clamp(26px, 4vh, 44px); height: 1px;
+      background: rgba(240, 236, 228, 0.18);
+    }
+    .hero-progress-fill {
+      position: absolute; inset: 0; transform-origin: left center;
+      transform: scaleX(var(--hp, 0)); background: var(--cream);
+    }
+    .hero-progress-tick {
+      position: absolute; top: -2px; width: 1px; height: 5px;
+      background: rgba(240, 236, 228, 0.34);
     }
 
     /* ─────────────────────────── about ─────────────────────────── */
@@ -661,17 +702,23 @@
       .hero-note { display: none; }
       .hero-title { text-align: center; }
       .ht-row.a, .ht-row.b, .ht-row.c { justify-content: center; gap: 0.4em; padding-left: 0; }
-      /* no room for a side-by-side rail — metrics stack under the copy */
-      .immersive-copy {
-        grid-template-columns: 1fr; align-items: start; row-gap: 22px;
-        inset: auto 0 12vh 0; padding: 0 var(--pad);
+      /* no room for side-by-side — every step collapses to the same stack */
+      .immersive-copy { inset: auto 0 13vh 0; padding: 0 var(--pad); }
+      .step-split, .step-stack, .step-mirror {
+        grid-template-columns: 1fr; row-gap: 20px; justify-items: start;
       }
-      .immersive-steps { width: auto; }
-      .immersive-metrics {
-        grid-template-columns: 1fr 1fr; gap: 12px 18px; text-align: left;
-        border-right: 0; padding-right: 0;
-        border-top: 1px solid rgba(240, 236, 228, 0.22); padding-top: 16px;
+      .step-split .istep-copy, .step-stack .istep-copy, .step-mirror .istep-copy {
+        max-width: none; text-align: left;
       }
+      .step-mirror .istep-copy { order: -1; }
+      .step-mirror .istep-copy p { margin-left: 0; }
+      .immersive-metrics,
+      .step-stack .immersive-metrics, .step-mirror .immersive-metrics {
+        grid-auto-flow: row; grid-template-columns: 1fr 1fr; gap: 12px 18px; text-align: left;
+        border: 0; border-top: 1px solid rgba(240, 236, 228, 0.22);
+        padding: 16px 0 0;
+      }
+      .hero-progress { left: var(--pad); right: var(--pad); bottom: 6vh; }
       .about-foot { grid-template-columns: 1fr; }
       .numbers-grid { grid-template-columns: 1fr; height: auto; }
       .numbers-rules { display: none; }
@@ -750,28 +797,54 @@
 
           <p class="hero-cue" data-hero-fade>Scroll to explore</p>
 
+          <!-- each step carries its own copy AND its own spec rail, and picks
+               its own layout, so the frame recomposes as you scroll instead of
+               holding one arrangement for the whole hero. -->
           <div class="immersive-copy" data-immersive-copy>
             <div class="immersive-steps">
-              <div class="immersive-step is-active">
-                <h2 class="display">A design-led business park for high-growth companies.</h2>
-                <p>Built for businesses that value privacy, focus and brand presence.</p>
+              <div class="immersive-step step-split is-active">
+                <div class="istep-copy">
+                  <h2 class="display">A design-led business park for high-growth companies.</h2>
+                  <p>Built for businesses that value privacy, focus and brand presence.</p>
+                </div>
+                <dl class="immersive-metrics">
+                  <div><dt>Venue</dt><dd>Dubai Fintech District</dd></div>
+                  <div><dt>Category</dt><dd>Business Park</dd></div>
+                  <div><dt>Operator</dt><dd>Gulf Alternatives</dd></div>
+                </dl>
               </div>
-              <div class="immersive-step">
-                <h2 class="display">High-ceiling, loft-style workspaces with dedicated parking.</h2>
-                <p>Offices, caf&eacute;s and gallery-style venues along a landscaped pedestrian promenade.</p>
+
+              <div class="immersive-step step-stack">
+                <div class="istep-copy">
+                  <h2 class="display">High-ceiling, loft-style workspaces with dedicated parking.</h2>
+                  <p>Offices, caf&eacute;s and gallery-style venues along a landscaped pedestrian promenade.</p>
+                </div>
+                <dl class="immersive-metrics">
+                  <div><dt>Workspace</dt><dd>Loft-style, high-ceiling</dd></div>
+                  <div><dt>Parking</dt><dd>Dedicated</dd></div>
+                  <div><dt>Promenade</dt><dd>Offices, caf&eacute;s, galleries</dd></div>
+                </dl>
               </div>
-              <div class="immersive-step">
-                <h2 class="display">One of Dubai&rsquo;s most distinctive business parks.</h2>
-                <p>Developed and operated end to end by Gulf Alternatives.</p>
+
+              <div class="immersive-step step-mirror">
+                <dl class="immersive-metrics">
+                  <div><dt>Suited to</dt><dd>Fintech and scale-ups</dd></div>
+                  <div><dt>And</dt><dd>Professional services</dd></div>
+                  <div><dt>And</dt><dd>Client-facing brands</dd></div>
+                </dl>
+                <div class="istep-copy">
+                  <h2 class="display">One of Dubai&rsquo;s most distinctive business parks.</h2>
+                  <p>Developed and operated end to end by Gulf Alternatives.</p>
+                </div>
               </div>
             </div>
+          </div>
 
-            <dl class="immersive-metrics">
-              <div><dt>Venue</dt><dd>Dubai Fintech District</dd></div>
-              <div><dt>Category</dt><dd>Business Park</dd></div>
-              <div><dt>Workspace</dt><dd>Loft-style, high-ceiling</dd></div>
-              <div><dt>Promenade</dt><dd>Offices, caf&eacute;s, galleries</dd></div>
-            </dl>
+          <div class="hero-progress" data-hero-progress aria-hidden="true">
+            <span class="hero-progress-fill"></span>
+            <span class="hero-progress-tick" style="left:26%"></span>
+            <span class="hero-progress-tick" style="left:51%"></span>
+            <span class="hero-progress-tick" style="left:75%"></span>
           </div>
       </div>
     </section>
@@ -1217,10 +1290,12 @@
       const fades = [...document.querySelectorAll('[data-hero-fade]')];
       const title = document.querySelector('.hero-title');
       const video = document.querySelector('[data-immersive-video]');
+      const progressBar = document.querySelector('[data-hero-progress]');
       if (!section || !copy || !steps.length) return;
 
       // the title owns the first quarter of the hero scroll; the three
-      // Creative Park steps split what's left.
+      // Fintech District steps split what's left. The progress ticks in the
+      // markup are placed to match: 26%, then each third of the remainder.
       const STEPS_START = 0.26;
 
       // scroll-scrubbed video: target time is lerped in its own rAF loop so
@@ -1254,6 +1329,7 @@
         const p = Math.min(1, progress / (STEPS_START * 0.9));
         const fade = Math.max(0, 1 - progress / (STEPS_START * 0.85));
         fades.forEach((el) => el.style.setProperty('--hero-title-opacity', fade.toFixed(3)));
+        if (progressBar) progressBar.style.setProperty('--hp', progress.toFixed(4));
         if (title) {
           title.style.setProperty('--p', p.toFixed(4));
           // holds full strength while it travels, then clears at the very end
