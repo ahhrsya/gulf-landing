@@ -913,7 +913,7 @@
             <div class="scale-grid-item"><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park aerial view"></div>
             <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park fitness space at night"></div>
             <div class="scale-grid-item js-scale-ref">
-              <video data-immersive-video src="../assets/immersive-1-scrub.mp4" poster="../assets/immersive-1-poster.jpg" muted playsinline preload="auto" aria-label="Approach to the building and walkthrough into the lobby"></video>
+              <video data-immersive-video src="../assets/video-scroll-scrub.mp4" poster="../assets/video-scroll-poster.jpg" muted playsinline preload="auto" aria-label="Approach to the building and walkthrough into the lobby"></video>
             </div>
             <div class="scale-grid-item"><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park landscape"></div>
             <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park interior at night"></div>
@@ -1709,10 +1709,11 @@
       // sync with HOLD_IN + RUN in the scale-grid script above.
       const ZOOM_END = 0.60;
 
-      // ponytail: scroll-scrubbed video. The asset is re-encoded all-keyframe
-      // AND motion-interpolated to 48fps (immersive-1-scrub.mp4) so seeking is
-      // instant and the frame steps are half as coarse — the source had 2
-      // keyframes in 240 frames, which stutters badly when scrubbed. Target
+      // ponytail: scroll-scrubbed video (video-scroll-scrub.mp4) is re-encoded
+      // with a 6-frame GOP and motion-interpolated to 48fps, so a seek decodes
+      // at most 5 frames and the steps are half as coarse — the source had ONE
+      // keyframe in 240 frames, which stutters badly when scrubbed. All-intra
+      // seeks marginally faster but costs 35MB at 1080p vs 12MB here. Target
       // time is lerped in its own rAF loop rather than set straight from the
       // scroll handler, so the playhead glides instead of stepping.
       // exponential smoothing, framerate-independent: a fixed per-frame lerp

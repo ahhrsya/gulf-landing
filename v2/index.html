@@ -705,7 +705,7 @@
     <section class="hero" id="hero" aria-labelledby="hero-title">
       <div class="hero-pin">
         <div class="hero-media" aria-hidden="true">
-            <video data-immersive-video src="../assets/asset-scroll-scrub.mp4" poster="../assets/asset-scroll-poster.jpg" muted playsinline preload="auto" aria-label="Interior walkthrough of a modern residence at night"></video>
+            <video data-immersive-video src="../assets/video-scroll-scrub.mp4" poster="../assets/video-scroll-poster.jpg" muted playsinline preload="auto" aria-label="Approach to the building and walkthrough into the lobby"></video>
           </div>
 
           <p class="hero-meta" data-hero-fade>
@@ -1193,7 +1193,9 @@
       const STEPS_START = 0.26;
 
       // scroll-scrubbed video: target time is lerped in its own rAF loop so
-      // the playhead glides instead of stepping frame to frame.
+      // the playhead glides instead of stepping frame to frame. The asset
+      // (video-scroll-scrub.mp4) is re-encoded with a 6-frame GOP and motion-
+      // interpolated to 48fps so seeks decode at most 5 frames.
       // exponential smoothing, framerate-independent: a fixed per-frame lerp
       // converges twice as fast on a 120Hz display as on 60Hz, so the glide
       // felt different per machine. 1 - e^(-k·dt) is the same curve in wall
