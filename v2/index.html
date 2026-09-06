@@ -1364,7 +1364,10 @@
 
       addEventListener('scroll', () => { if (!pending) { pending = true; requestAnimationFrame(render); } }, { passive: true });
       addEventListener('resize', render, { passive: true });
-      if (video) video.addEventListener('loadedmetadata', render);
+      // a cold load can reach this section before the video is seekable, so
+      // re-render on every readiness step instead of once on metadata
+      if (video) ['loadedmetadata', 'durationchange', 'canplay', 'canplaythrough', 'progress', 'seeked']
+        .forEach((evt) => video.addEventListener(evt, () => { if (!pending) { pending = true; requestAnimationFrame(render); } }));
       render();
     })();
 

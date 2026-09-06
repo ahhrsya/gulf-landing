@@ -914,11 +914,11 @@
             <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park fitness space at night"></div>
             <div class="scale-grid-item js-scale-ref">
               <video data-immersive-video
-                    data-src-mobile="../assets/video-scroll-scrub-720.mp4"
-                    data-src-desktop="../assets/video-scroll-scrub-1280.mp4"
-                    poster="../assets/video-scroll-poster.jpg"
-                    muted playsinline preload="metadata" disablepictureinpicture
-                    aria-label="Approach to the building and walkthrough into the lobby"></video>
+                    data-src-mobile="../assets/fix-scrub-720.mp4"
+                    data-src-desktop="../assets/fix-scrub-1280.mp4"
+                    poster="../assets/fix-poster.jpg"
+                    muted playsinline preload="auto" disablepictureinpicture
+                    aria-label="Dubai Fintech District — approach and walkthrough into the lobby"></video>
             </div>
             <div class="scale-grid-item"><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park landscape"></div>
             <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park interior at night"></div>
@@ -1334,22 +1334,18 @@
     // the mobile stutter. Both encodes are all-keyframe, and the phone one is
     // cropped to 9:16 so a portrait screen isn't magnifying the middle sliver
     // of a landscape frame. Chosen from the device, not the viewport, so
-    // rotating never swaps the src mid-scroll. This section sits mid-page, so
-    // the file is only fetched as it nears.
+    // rotating never swaps the src mid-scroll.
+    // ponytail: this used to wait for an IntersectionObserver on .immersive
+    // before setting src. On a COLD load there was then no time to fetch a
+    // multi-MB file before the user arrived, so duration was still NaN, the
+    // scrub was skipped and only the copy changed — and a refresh "fixed" it
+    // purely because the file was cached. It now starts immediately.
     (() => {
       const v = document.querySelector('[data-immersive-video]');
       if (!v) return;
       const shortEdge = Math.min(screen.width || innerWidth, screen.height || innerHeight);
-      const src = shortEdge <= 820 ? v.dataset.srcMobile : v.dataset.srcDesktop;
-      let started = false;
-
-      const load = () => {
-        if (started) return;
-        started = true;
-        v.setAttribute('src', src);
-        v.setAttribute('preload', 'auto');
-        v.load();
-      };
+      v.setAttribute('src', shortEdge <= 820 ? v.dataset.srcMobile : v.dataset.srcDesktop);
+      v.setAttribute('preload', 'auto');
 
       // iOS Safari ignores currentTime until the element has decoded once
       v.addEventListener('loadeddata', () => {
@@ -1357,15 +1353,7 @@
         if (p && p.then) p.then(() => v.pause()).catch(() => {});
       }, { once: true });
 
-      const section = document.querySelector('.immersive');
-      if (section && 'IntersectionObserver' in window) {
-        const io = new IntersectionObserver((entries) => {
-          if (entries.some((e) => e.isIntersecting)) { io.disconnect(); load(); }
-        }, { rootMargin: '150% 0px' });
-        io.observe(section);
-      } else {
-        load();
-      }
+      v.load();
     })();
 
     // mobile menu: the nav CTA lives in here once the bar collapses
@@ -1815,7 +1803,10 @@
       addEventListener('resize', render, { passive: true });
 
       // duration isn't known until metadata lands — re-run once it is
-      if (video) video.addEventListener('loadedmetadata', render);
+      // a cold load can reach this section before the video is seekable, so
+      // re-render on every readiness step instead of once on metadata
+      if (video) ['loadedmetadata', 'durationchange', 'canplay', 'canplaythrough', 'progress', 'seeked']
+        .forEach((evt) => video.addEventListener(evt, () => { if (!pending) { pending = true; requestAnimationFrame(render); } }));
       render();
     })();
   </script>
