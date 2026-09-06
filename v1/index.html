@@ -913,7 +913,12 @@
             <div class="scale-grid-item"><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park aerial view"></div>
             <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park fitness space at night"></div>
             <div class="scale-grid-item js-scale-ref">
-              <video data-immersive-video src="../assets/video-scroll-scrub.mp4" poster="../assets/video-scroll-poster.jpg" muted playsinline preload="auto" aria-label="Approach to the building and walkthrough into the lobby"></video>
+              <video data-immersive-video
+                    data-src-mobile="../assets/video-scroll-scrub-720.mp4"
+                    data-src-desktop="../assets/video-scroll-scrub-1280.mp4"
+                    poster="../assets/video-scroll-poster.jpg"
+                    muted playsinline preload="metadata" disablepictureinpicture
+                    aria-label="Approach to the building and walkthrough into the lobby"></video>
             </div>
             <div class="scale-grid-item"><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park landscape"></div>
             <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park interior at night"></div>
@@ -1324,6 +1329,45 @@
     // 'auto' (it has to be — smooth fights Lenis). Route them through
     // lenis.scrollTo so they animate, with a native smooth fallback when
     // Lenis is off (reduced motion falls through to an instant jump).
+    // scrub source: phones get the small all-keyframe encode.
+    // ponytail: the 1920x1080 master had 80 keyframes in 478 frames, so each
+    // seek decoded forward from the previous one — that was the mobile
+    // stutter. Both encodes below are all-keyframe: one seek, one decode.
+    // This section sits mid-page, so the file is only fetched as it nears.
+    (() => {
+      const v = document.querySelector('[data-immersive-video]');
+      if (!v) return;
+      const small = matchMedia('(max-width: 820px)');
+      let loadedFor = null;
+
+      const load = () => {
+        const wants = small.matches;
+        if (loadedFor === wants) return;
+        loadedFor = wants;
+        v.setAttribute('src', wants ? v.dataset.srcMobile : v.dataset.srcDesktop);
+        v.setAttribute('preload', 'auto');
+        v.load();
+      };
+
+      // iOS Safari ignores currentTime until the element has decoded once
+      v.addEventListener('loadeddata', () => {
+        const p = v.play();
+        if (p && p.then) p.then(() => v.pause()).catch(() => {});
+      }, { once: true });
+
+      const section = document.querySelector('.immersive');
+      if (section && 'IntersectionObserver' in window) {
+        const io = new IntersectionObserver((entries) => {
+          if (entries.some((e) => e.isIntersecting)) { io.disconnect(); load(); }
+        }, { rootMargin: '150% 0px' });
+        io.observe(section);
+      } else {
+        load();
+      }
+      (small.addEventListener ? small.addEventListener('change', () => { if (loadedFor !== null) load(); })
+                              : small.addListener(() => { if (loadedFor !== null) load(); }));
+    })();
+
     // mobile menu: the nav CTA lives in here once the bar collapses
     (() => {
       const bar = document.querySelector('.hero-nav');
@@ -1709,7 +1753,7 @@
       // sync with HOLD_IN + RUN in the scale-grid script above.
       const ZOOM_END = 0.60;
 
-      // ponytail: scroll-scrubbed video (video-scroll-scrub.mp4) is re-encoded
+      // ponytail: scroll-scrubbed video is served all-keyframe (see the
       // with a 6-frame GOP and motion-interpolated to 48fps, so a seek decodes
       // at most 5 frames and the steps are half as coarse — the source had ONE
       // keyframe in 240 frames, which stutters badly when scrubbed. All-intra

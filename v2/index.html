@@ -770,7 +770,12 @@
     <section class="hero" id="hero" aria-labelledby="hero-title">
       <div class="hero-pin">
         <div class="hero-media" aria-hidden="true">
-            <video data-immersive-video src="../assets/fix-scrub.mp4" poster="../assets/fix-poster.jpg" muted playsinline preload="auto" aria-label="Dubai Fintech District — approach and walkthrough into the lobby"></video>
+            <video data-immersive-video
+                   data-src-mobile="../assets/fix-scrub-720.mp4"
+                   data-src-desktop="../assets/fix-scrub-1280.mp4"
+                   poster="../assets/fix-poster.jpg"
+                   muted playsinline preload="auto" disablepictureinpicture
+                   aria-label="Dubai Fintech District — approach and walkthrough into the lobby"></video>
           </div>
 
           <p class="hero-meta" data-hero-fade>
@@ -855,22 +860,22 @@
       <div class="selection-viewport">
         <div class="selection-track" data-selection-track aria-hidden="true">
           <figure class="selection-item">
-            <div><img src="../assets/69d672deee43890227380c89_photo_2026-04-08%2022.21.36.avif" alt="Gulfalts development" loading="lazy"></div>
+            <div><img src="../assets/gulfalts-development.avif" alt="Gulfalts development" loading="lazy"></div>
           </figure>
           <figure class="selection-item">
-            <div><img src="../assets/69d6726cb133d35bd4ce04ee_image-gulfalts.avif" alt="Gulfalts portfolio" loading="lazy"></div>
+            <div><img src="../assets/gulfalts-portfolio.avif" alt="Gulfalts portfolio" loading="lazy"></div>
           </figure>
           <figure class="selection-item">
-            <div><img src="../assets/69cd0f6e6e2110634ffd47e1_69b687099f42089ab54ff5d3_251021_D01" alt="Auto Park" loading="lazy"></div>
+            <div><img src="../assets/auto-park.avif" alt="Auto Park" loading="lazy"></div>
           </figure>
           <figure class="selection-item">
-            <div><img src="../assets/69cd0f6e6e2110634ffd47e4_69b686d3cdd57770e91b2f73_concept%25" alt="Concept view" loading="lazy"></div>
+            <div><img src="../assets/concept-view.avif" alt="Concept view" loading="lazy"></div>
           </figure>
           <figure class="selection-item">
-            <div><img src="../assets/69934e9960a1970bfc076912_4a38a8e57c87fd5c774f5717e08b433f_im" alt="Asset value" loading="lazy"></div>
+            <div><img src="../assets/gulfalts-value.avif" alt="Asset value" loading="lazy"></div>
           </figure>
           <figure class="selection-item">
-            <div><img src="../assets/69934ee53c551dbab874d580_img-start.avif" alt="Getting started" loading="lazy"></div>
+            <div><img src="../assets/gulfalts-start.avif" alt="Getting started" loading="lazy"></div>
           </figure>
         </div>
       </div>
@@ -1002,9 +1007,9 @@
 
         <div class="wwd-media">
           <div class="wwd-shot is-revealed" data-wwd-shot><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park"></div>
-          <div class="wwd-shot" data-wwd-shot><img src="../assets/69aec5168c2845cbacf25f24_modern-architectural-structure-with" alt="Contemporary architecture in Dubai" loading="lazy"></div>
-          <div class="wwd-shot" data-wwd-shot><img src="../assets/6a4b0fed8500609b56f38466_premium-automotive-workshop-space-f" alt="Automotive workshop space" loading="lazy"></div>
-          <div class="wwd-shot" data-wwd-shot><img src="../assets/6a7dea59cc5281ac2bc28d90_card-directory.webp" alt="Gulfalts directory" loading="lazy"></div>
+          <div class="wwd-shot" data-wwd-shot><img src="../assets/modern-architecture.webp" alt="Contemporary architecture in Dubai" loading="lazy"></div>
+          <div class="wwd-shot" data-wwd-shot><img src="../assets/automotive-workshop.avif" alt="Automotive workshop space" loading="lazy"></div>
+          <div class="wwd-shot" data-wwd-shot><img src="../assets/card-directory.webp" alt="Gulfalts directory" loading="lazy"></div>
         </div>
       </div>
     </section>
@@ -1268,6 +1273,37 @@
       document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-in'));
     }
 
+    /* ── scrub source: phones get the small all-keyframe encode ──
+       The 1920x1080 master only had 80 keyframes in 478 frames, so every seek
+       had to decode forward from the last one — that was the mobile stutter.
+       Both encodes below are all-keyframe, so a seek is a single decode. */
+    (() => {
+      const v = document.querySelector('[data-immersive-video]');
+      if (!v) return;
+      const small = matchMedia('(max-width: 820px)');
+      let loadedFor = null;
+
+      const load = () => {
+        const wants = small.matches;
+        if (loadedFor === wants) return;
+        loadedFor = wants;
+        v.setAttribute('src', wants ? v.dataset.srcMobile : v.dataset.srcDesktop);
+        v.load();
+      };
+
+      // iOS Safari ignores currentTime until the element has decoded once, so
+      // prime it with a muted play/pause the moment data lands
+      v.addEventListener('loadeddata', () => {
+        const p = v.play();
+        if (p && p.then) p.then(() => v.pause()).catch(() => {});
+      }, { once: true });
+
+      load();
+      // only reload if the breakpoint is actually crossed — swapping src on
+      // every resize would reset the playhead mid-scroll
+      (small.addEventListener ? small.addEventListener('change', load) : small.addListener(load));
+    })();
+
     /* ── hero copy: title holds the frame, then the steps take over ── */
     (() => {
       const section = document.querySelector('.hero');
@@ -1284,7 +1320,7 @@
 
       // scroll-scrubbed video: target time is lerped in its own rAF loop so
       // the playhead glides instead of stepping frame to frame. The asset
-      // (fix-scrub.mp4) is re-encoded with a 6-frame GOP and motion-
+      // is served all-keyframe (see the source picker above) and motion-
       // interpolated to 48fps so seeks decode at most 5 frames.
       // exponential smoothing, framerate-independent: a fixed per-frame lerp
       // converges twice as fast on a 120Hz display as on 60Hz, so the glide
