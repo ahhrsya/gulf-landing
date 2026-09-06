@@ -1329,22 +1329,24 @@
     // 'auto' (it has to be — smooth fights Lenis). Route them through
     // lenis.scrollTo so they animate, with a native smooth fallback when
     // Lenis is off (reduced motion falls through to an instant jump).
-    // scrub source: phones get the small all-keyframe encode.
-    // ponytail: the 1920x1080 master had 80 keyframes in 478 frames, so each
-    // seek decoded forward from the previous one — that was the mobile
-    // stutter. Both encodes below are all-keyframe: one seek, one decode.
-    // This section sits mid-page, so the file is only fetched as it nears.
+    // scrub source. ponytail: the 1920x1080 master had 80 keyframes in 478
+    // frames, so each seek decoded forward from the previous one — that was
+    // the mobile stutter. Both encodes are all-keyframe, and the phone one is
+    // cropped to 9:16 so a portrait screen isn't magnifying the middle sliver
+    // of a landscape frame. Chosen from the device, not the viewport, so
+    // rotating never swaps the src mid-scroll. This section sits mid-page, so
+    // the file is only fetched as it nears.
     (() => {
       const v = document.querySelector('[data-immersive-video]');
       if (!v) return;
-      const small = matchMedia('(max-width: 820px)');
-      let loadedFor = null;
+      const shortEdge = Math.min(screen.width || innerWidth, screen.height || innerHeight);
+      const src = shortEdge <= 820 ? v.dataset.srcMobile : v.dataset.srcDesktop;
+      let started = false;
 
       const load = () => {
-        const wants = small.matches;
-        if (loadedFor === wants) return;
-        loadedFor = wants;
-        v.setAttribute('src', wants ? v.dataset.srcMobile : v.dataset.srcDesktop);
+        if (started) return;
+        started = true;
+        v.setAttribute('src', src);
         v.setAttribute('preload', 'auto');
         v.load();
       };
@@ -1364,8 +1366,6 @@
       } else {
         load();
       }
-      (small.addEventListener ? small.addEventListener('change', () => { if (loadedFor !== null) load(); })
-                              : small.addListener(() => { if (loadedFor !== null) load(); }));
     })();
 
     // mobile menu: the nav CTA lives in here once the bar collapses
