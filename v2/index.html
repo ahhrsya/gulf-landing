@@ -640,13 +640,7 @@
     .cta-panel > div, .cta-panel > img { position: relative; z-index: 2; }
     .cta-panel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.86fr); gap: clamp(32px, 5vw, 80px); align-items: center; }
     .cta-copy { max-width: none; }
-    .cta-art {
-      display: grid; place-items: center;
-      aspect-ratio: 4 / 3; width: 100%;
-      border: 1px dashed rgba(237, 231, 218, 0.28);
-      color: var(--faint); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
-    }
-    img.cta-art { border: 0; }
+    .cta-art { display: block; width: 100%; height: auto; }
     .cta-panel h2 { max-width: 17ch; margin: 0 0 22px; font-size: var(--h2); text-wrap: balance; }
     .cta-panel p:not(.eyebrow) { max-width: 50ch; margin: 0 0 34px; color: rgba(237,231,218,0.72); font-size: clamp(15px, 1.2vw, 18px); text-wrap: pretty; }
 
@@ -1148,8 +1142,7 @@
           <a class="pill solid" href="mailto:info@gulfalts.com?subject=Gulf%20Alternatives%20enquiry">Contact us</a>
         </div>
 
-        <!-- illustration slot: swap the div below for an img with class cta-art -->
-        <div class="cta-art" role="presentation"><span>Illustration</span></div>
+        <img class="cta-art" src="../assets/cta-illustration.webp" alt="" loading="lazy" decoding="async">
       </div>
     </section>
   </main>

@@ -914,7 +914,7 @@
             <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park fitness space at night"></div>
             <div class="scale-grid-item js-scale-ref">
               <video data-immersive-video
-                    data-src-mobile="../assets/fix-scrub-720.mp4"
+                    data-src-mobile="../assets/fix-scrub-1280.mp4"
                     data-src-desktop="../assets/fix-scrub-1280.mp4"
                     poster="../assets/fix-poster.jpg"
                     muted playsinline preload="auto" disablepictureinpicture
@@ -1329,12 +1329,14 @@
     // 'auto' (it has to be — smooth fights Lenis). Route them through
     // lenis.scrollTo so they animate, with a native smooth fallback when
     // Lenis is off (reduced motion falls through to an instant jump).
-    // scrub source. ponytail: the 1920x1080 master had 80 keyframes in 478
-    // frames, so each seek decoded forward from the previous one — that was
-    // the mobile stutter. Both encodes are all-keyframe, and the phone one is
-    // cropped to 9:16 so a portrait screen isn't magnifying the middle sliver
-    // of a landscape frame. Chosen from the device, not the viewport, so
-    // rotating never swaps the src mid-scroll.
+    // scrub source. ponytail: all-keyframe encode — the 1920x1080 master had
+    // 80 keyframes in 478 frames, so each seek decoded forward from the
+    // previous one, which is what stuttered on phones.
+    // ponytail: unlike v2's hero, BOTH sources here are the landscape encode.
+    // This section's tile is landscape and the zoom scales it until it covers
+    // the viewport, so on a portrait phone the tile ends up far wider than the
+    // screen. Feeding it v2's 9:16 crop meant ~215 source px stretched across
+    // the screen (~5x); the landscape frame gives ~330 and looks sharp.
     // ponytail: this used to wait for an IntersectionObserver on .immersive
     // before setting src. On a COLD load there was then no time to fetch a
     // multi-MB file before the user arrived, so duration was still NaN, the
