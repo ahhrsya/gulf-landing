@@ -354,7 +354,7 @@
     .scale-grid-content { display: grid; gap: 1rem }
     .scale-grid-item { position: relative; overflow: hidden; background: #111; aspect-ratio: 3/2; border-radius: 8px }
     .scale-grid-item img,
-    .scale-grid-item video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block }
+    .scale-grid-item video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit }
 
     /* ponytail: left-centred, and hidden until the grid has finished zooming
        to fullscreen — it only earns the overlay once the image is the whole
@@ -405,13 +405,18 @@
       .scale-grid-wrap { position: sticky; top: 0; height: 100svh }
       .scale-grid-content {
         display: block; gap: 0;
-        position: absolute; top: 50%; left: 50%;
+        /* content (127.8em tall) can exceed the viewport height at wide/short
+           breakpoints, clipping item 1's rounded top corner against the
+           sticky frame — nudge the whole grid down to keep it clear. */
+        position: absolute; top: calc(50% + 8em); left: 50%;
         width: 129.6em; height: 127.8em;
         transform: translate(-50%, -50%) scale(var(--s, 1));
         will-change: transform;
       }
       .scale-grid-item { position: absolute; aspect-ratio: auto }
-      .scale-grid-item:nth-child(1) { top: 0;         left: 32.9em;  width: 77em;   height: 41.2em }
+      /* item 1 kept level with item 3's width so both share the same right
+         edge instead of item 1 overhanging it. */
+      .scale-grid-item:nth-child(1) { top: 0;         left: 32.9em;  width: 63.8em; height: 41.2em }
       .scale-grid-item:nth-child(2) { top: 50.3em;    left: 0;       width: 30.9em; height: 34.1em }
       .scale-grid-item:nth-child(3) { top: 43.2em;    left: 32.9em;  width: 63.8em; height: 41.2em }
       .scale-grid-item:nth-child(4) { top: 50.3em;    right: 0;      width: 30.9em; height: 34.1em }
@@ -508,7 +513,7 @@
       overflow: hidden;
       padding: clamp(24px, 3vw, 42px);
       border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 2px;
+      border-radius: 8px;
       background: #fff;
       color: var(--ink);
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
@@ -615,12 +620,12 @@
     }
 
     .map-section {
-      height: 100svh;
-      min-height: 720px;
+      height: auto;
+      min-height: 100svh;
       padding: 120px 40px;
       background: var(--paper);
       display: grid;
-      grid-template-rows: auto minmax(0, 1fr);
+      grid-template-rows: auto auto;
       gap: 24px;
       align-items: start;
     }
@@ -628,19 +633,39 @@
     .map-heading { max-width: 1100px; margin: 0 auto; text-align: center; }
     .map-heading .eyebrow { font-size: 11px; }
     .map-heading h2 { max-width: 1000px; margin: 0 auto 18px; font-size: clamp(40px, 5.6vw, 88px); font-weight: 400; letter-spacing: -0.04em; line-height: 0.9; text-wrap: balance; }
-    .map-heading p { max-width: 46ch; margin: 0 auto; color: var(--muted); font-size: clamp(15px, 1.3vw, 18px); line-height: 1.5; }
-    /* ponytail: narrower + taller than the old 5:3 letterbox — the 4 venues
-       sit in a tight cluster, so height is what lets them (and their label
-       pills) all fit on screen at once. */
-    .map-wrap { position: relative; width: min(900px, 100%); aspect-ratio: 1 / 1; min-height: 0; margin: 0 auto; overflow: visible; }
-    #dubai-map { width: 100%; height: 100%; background: #fff; border-radius: 16px; }
+    .map-heading p:not(.eyebrow) { max-width: 46ch; margin: 0 auto; color: var(--muted); font-size: clamp(15px, 1.3vw, 18px); line-height: 1.5; }
+    .map-wrap { position: relative; width: min(900px, 100%); min-height: 0; margin: 0 auto; overflow: visible; }
+    .map-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      border-radius: 20px;
+      overflow: hidden;
+      clip-path: inset(0 round 20px);
+      -webkit-mask-image: -webkit-radial-gradient(white, black);
+      isolation: isolate;
+      contain: paint;
+      transform: translateZ(0);
+    }
+    #dubai-map,
+    .map-frame .leaflet-container {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border-radius: 20px !important;
+      overflow: hidden !important;
+    }
+    .map-frame::after {
+      position: absolute;
+      inset: 0;
+      z-index: 1000;
+      border: 1px solid rgba(11, 11, 11, 0.08);
+      border-radius: inherit;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+      content: "";
+      pointer-events: none;
+    }
     .leaflet-control-attribution { background: rgba(255, 255, 255, 0.82) !important; }
-
-    .map-venue-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-top: 1px; background: var(--line); }
-    .map-venue-list a { min-width: 0; padding: 12px; background: var(--paper); color: var(--ink); text-decoration: none; }
-    .map-venue-list a:hover { background: #f0f0ed; }
-    .map-venue-list strong { display: block; font-size: 13px; font-weight: 500; }
-    .map-venue-list span { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; line-height: 1.25; }
 
     /* venue pin: circular thumbnail + label pill, popup card on hover */
     .venue-marker { position: relative; }
@@ -718,6 +743,7 @@
       object-fit: cover;
       opacity: 0;
       filter: saturate(0.78) brightness(1.12);
+      border-radius: 8px;
       will-change: transform, opacity;
     }
 
@@ -825,8 +851,8 @@
       .approach-row { padding: 9px 14px; }
       .map-section { height: auto; min-height: 0; padding: 72px 20px 64px; display: block; }
       .map-heading { margin-bottom: 32px; }
-      .map-wrap { width: 100%; height: auto; aspect-ratio: 3 / 4; min-height: 0; }
-      .map-venue-list { grid-template-columns: 1fr 1fr; }
+      .map-wrap { width: 100%; height: auto; min-height: 0; }
+      .map-frame { aspect-ratio: 4 / 3; }
       .footer-top { grid-template-columns: 1fr 1fr; gap: 34px 24px; }
       .footer-newsletter { grid-column: 1 / 3; margin-bottom: 10px; }
       .footer-signup { max-width: 100%; }
@@ -916,12 +942,12 @@
     </section>
 
     <div class="section immersive" id="immersive" aria-label="Creative Park">
-      <!-- ===== component: scale-grid, verbatim from scalegrid-6480796b.html. #3 (js-scale-ref) is the hero the grid zooms into. ===== -->
+      <!-- ===== component: scale-grid, verbatim from scalegrid-6480796b.html. #3 (js-scale-ref) is the focus tile the grid zooms into. ===== -->
       <section class="scale-grid js-scale-grid">
         <div class="scale-grid-wrap">
           <div class="scale-grid-content js-scale">
-            <div class="scale-grid-item"><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park aerial view"></div>
-            <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park fitness space at night"></div>
+            <div class="scale-grid-item"><img src="../assets/blog-business-center.avif" alt="Dubai business center interior"></div>
+            <div class="scale-grid-item"><img src="../assets/blog-padel.avif" alt="Indoor padel court in Dubai"></div>
             <div class="scale-grid-item js-scale-ref">
               <video data-immersive-video
                     data-src-mobile="../assets/fix-scrub-1280.mp4"
@@ -930,9 +956,9 @@
                     muted playsinline preload="auto" disablepictureinpicture
                     aria-label="Dubai Creative Park walkthrough"></video>
             </div>
-            <div class="scale-grid-item"><img src="../assets/creative-park-hero.avif" alt="Dubai Creative Park landscape"></div>
-            <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park interior at night"></div>
-            <div class="scale-grid-item"><img src="../assets/fitness-day.png" alt="Creative Park fitness space"></div>
+            <div class="scale-grid-item"><img src="../assets/blog-sports-facility.png" alt="Dubai fitness facility interior"></div>
+            <div class="scale-grid-item"><img src="../assets/blog-creative-studio.avif" alt="Dubai creative studio dining and lounge space"></div>
+            <div class="scale-grid-item"><img src="../assets/fitness-night.jpg" alt="Creative Park fitness space at night"></div>
           </div>
 
           <!-- ponytail: copy scaffold for the immersive scroll — one step is
@@ -1015,11 +1041,11 @@
         </div>
 
         <figure class="approach-image approach-support">
-          <img data-approach-support src="../assets/creative-park-hero.avif" alt="Architectural view of Dubai Creative Park">
+          <img data-approach-support src="../assets/experience-work-collaboration.png" alt="Professional working in a naturally lit Dubai meeting space">
           <img class="approach-image-next" data-approach-support-next alt="" aria-hidden="true">
         </figure>
         <figure class="approach-image approach-main">
-          <img data-approach-main src="../assets/fitness-day.png" alt="Dubai Creative Park fitness space">
+          <img data-approach-main src="../assets/experience-work-office.avif" alt="Design-led workspace overlooking Dubai's financial district">
           <img class="approach-image-next" data-approach-main-next alt="" aria-hidden="true">
         </figure>
       </div>
@@ -1084,12 +1110,8 @@
         <p>Explore Gulf Alternatives destinations across the city and get directions to each location.</p>
       </div>
       <div class="map-wrap">
-        <div id="dubai-map" role="application" aria-label="Interactive map focused on Dubai"></div>
-        <div class="map-venue-list" aria-label="Location list">
-          <a href="https://maps.app.goo.gl/1Z53oRco3kVDjSsj9" target="_blank" rel="noreferrer"><strong>Dubai Fintech District</strong><span>Business park · Get directions</span></a>
-          <a href="https://maps.app.goo.gl/z4Asg5HY1MbpcqpV9" target="_blank" rel="noreferrer"><strong>Dubai Creative Park</strong><span>Fitness and wellness destination · Get directions</span></a>
-          <a href="https://maps.app.goo.gl/oC7rk9PPXYkT8cpy8" target="_blank" rel="noreferrer"><strong>V8 District</strong><span>Location · Get directions</span></a>
-          <a href="https://maps.app.goo.gl/SaLQUBgw7Z71kPjbA" target="_blank" rel="noreferrer"><strong>Motor Garten</strong><span>Location · Get directions</span></a>
+        <div class="map-frame">
+          <div id="dubai-map" role="application" aria-label="Interactive map focused on Dubai"></div>
         </div>
       </div>
     </section>
@@ -1304,9 +1326,17 @@
       // the bottom of the screen — including once the footer has scrolled
       // fully into view, where it just smears the copyright line for no
       // reason. Fade it out once we're at (or near) the end of the page.
+      const mapFrame = document.querySelector('.map-frame');
       const updateViewportBlur = () => {
         const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 60;
-        viewportBlurEl.classList.toggle('is-hidden', atBottom);
+        const mapRect = mapFrame?.getBoundingClientRect();
+        const blurTouchesMapBottom = Boolean(
+          mapRect &&
+          mapRect.top < window.innerHeight &&
+          mapRect.bottom > window.innerHeight - 170 &&
+          mapRect.bottom < window.innerHeight + 24
+        );
+        viewportBlurEl.classList.toggle('is-hidden', atBottom || blurTouchesMapBottom);
       };
       updateViewportBlur();
       document.addEventListener('scroll', updateViewportBlur, { passive: true });
@@ -1458,37 +1488,37 @@
         title: 'Work',
         icon: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="15"></circle><circle cx="24" cy="24" r="6"></circle><path d="M24 4v7M24 37v7M4 24h7M37 24h7"></path><circle cx="24" cy="24" r="2.5" fill="currentColor"></circle></svg>',
         description: 'Dubai Fintech District brings workspaces, services and shared amenities together so businesses can focus, connect and grow.',
-        supportImage: '../assets/creative-park-hero.avif',
-        supportAlt: 'Architectural view of Dubai Creative Park',
-        mainImage: '../assets/fitness-day.png',
-        mainAlt: 'Dubai Creative Park fitness space'
+        supportImage: '../assets/experience-work-collaboration.png',
+        supportAlt: 'Professional working in a naturally lit Dubai meeting space',
+        mainImage: '../assets/experience-work-office.avif',
+        mainAlt: "Design-led workspace overlooking Dubai's financial district"
       },
       {
         title: 'Move',
         icon: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="17"></circle><path d="M7 24h34M24 7c5 5 7 10.7 7 17s-2 12-7 17c-5-5-7-12-7-17s2-12 7-17Z"></path><path d="M10 15h28M10 33h28"></path></svg>',
         description: 'Dubai Creative Park brings fitness, wellness, food and landscape together in one walkable destination built around movement.',
-        supportImage: '../assets/fitness-night.jpg',
-        supportAlt: 'Interior view of a Dubai commercial destination',
-        mainImage: '../assets/creative-park-hero.avif',
-        mainAlt: 'Dubai Creative Park architectural environment'
+        supportImage: '../assets/experience-move-training.jpeg',
+        supportAlt: 'Athlete training in a bright performance studio',
+        mainImage: '../assets/experience-move-community.jpeg',
+        mainAlt: 'Community fitness class in a sunlit wellness space'
       },
       {
         title: 'Gather',
         icon: '<svg viewBox="0 0 48 48"><path d="m24 5 17 10-17 10L7 15 24 5Z"></path><path d="m7 24 17 10 17-10"></path><path d="m7 33 17 10 17-10"></path></svg>',
         description: 'Shared amenities and social spaces give teams, visitors and communities room to meet, recharge and spend time together.',
-        supportImage: '../assets/fitness-day.png',
-        supportAlt: 'Wellness and fitness environment in Dubai',
-        mainImage: '../assets/fitness-night.jpg',
-        mainAlt: 'Specialized commercial interior in Dubai'
+        supportImage: '../assets/experience-gather-cafe.avif',
+        supportAlt: 'Barista preparing coffee in a design-led Dubai cafe',
+        mainImage: '../assets/experience-gather-gallery.avif',
+        mainAlt: 'Visitors walking together through a contemporary Dubai arts district'
       },
       {
         title: 'Return',
         icon: '<svg viewBox="0 0 48 48"><path d="M24 5 28 19 43 24 28 29 24 43 20 29 5 24l15-5 4-14Z"></path><circle cx="24" cy="24" r="3" fill="currentColor"></circle></svg>',
         description: 'A good destination earns repeat visits by making everyday routines easier, more social and more rewarding.',
-        supportImage: '../assets/creative-park-hero.avif',
-        supportAlt: 'Dubai Creative Park landscape and architecture',
-        mainImage: '../assets/creative-park-hero.avif',
-        mainAlt: 'Commercial destination rendering in Dubai'
+        supportImage: '../assets/experience-return-recovery.avif',
+        supportAlt: 'Calm recovery space overlooking the Dubai skyline',
+        mainImage: '../assets/experience-return-rooftop.jpeg',
+        mainAlt: 'Rooftop wellness destination with pool and landscaped terrace'
       }
     ];
     let approachSwapTimer;
@@ -1658,7 +1688,7 @@
       const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (!trail || !fine || still) return;
 
-      const sources = ['../assets/creative-park-hero.avif', '../assets/fitness-day.png', '../assets/fitness-night.jpg'];
+      const sources = ['../assets/blog-business-center.avif', '../assets/blog-padel.avif', '../assets/blog-sports-facility.png'];
       const pool = sources.concat(sources).map((src) => {
         const img = new Image();
         img.src = src;
