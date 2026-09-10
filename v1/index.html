@@ -950,9 +950,9 @@
             <div class="scale-grid-item"><img src="../assets/blog-padel.avif" alt="Indoor padel court in Dubai"></div>
             <div class="scale-grid-item js-scale-ref">
               <video data-immersive-video
-                    data-src-mobile="../assets/fix-scrub-1280.mp4"
-                    data-src-desktop="../assets/fix-scrub-1280.mp4"
-                    poster="../assets/fix-poster.jpg"
+                    data-src-mobile="../assets/video-concept-2-scrub-720p.mp4"
+                    data-src-desktop="../assets/video-concept-2-scrub-1080p.mp4"
+                    poster="../assets/video-concept-2-poster.jpg"
                     muted playsinline preload="auto" disablepictureinpicture
                     aria-label="Dubai Creative Park walkthrough"></video>
             </div>
@@ -1370,14 +1370,11 @@
     // 'auto' (it has to be — smooth fights Lenis). Route them through
     // lenis.scrollTo so they animate, with a native smooth fallback when
     // Lenis is off (reduced motion falls through to an instant jump).
-    // scrub source. ponytail: all-keyframe encode — the 1920x1080 master had
-    // 80 keyframes in 478 frames, so each seek decoded forward from the
-    // previous one, which is what stuttered on phones.
-    // ponytail: unlike v2's hero, BOTH sources here are the landscape encode.
-    // This section's tile is landscape and the zoom scales it until it covers
-    // the viewport, so on a portrait phone the tile ends up far wider than the
-    // screen. Feeding it v2's 9:16 crop meant ~215 source px stretched across
-    // the screen (~5x); the landscape frame gives ~330 and looks sharp.
+    // scrub source. Video Concept 2 is kept untouched as the 4K60 master.
+    // The website uses landscape derivatives built specifically for seeking:
+    // 1080p60 desktop and 720p30 mobile, both H.264 with a fixed 6-frame GOP,
+    // no audio and fast-start metadata. This keeps the full-bleed tile sharp
+    // while bounding every random seek to at most five dependent frames.
     // ponytail: this used to wait for an IntersectionObserver on .immersive
     // before setting src. On a COLD load there was then no time to fetch a
     // multi-MB file before the user arrived, so duration was still NaN, the
@@ -1782,13 +1779,11 @@
       // sync with HOLD_IN + RUN in the scale-grid script above.
       const ZOOM_END = 0.60;
 
-      // ponytail: scroll-scrubbed video is served all-keyframe (see the
-      // with a 6-frame GOP and motion-interpolated to 48fps, so a seek decodes
-      // at most 5 frames and the steps are half as coarse — the source had ONE
-      // keyframe in 240 frames, which stutters badly when scrubbed. All-intra
-      // seeks marginally faster but costs 35MB at 1080p vs 12MB here. Target
-      // time is lerped in its own rAF loop rather than set straight from the
-      // scroll handler, so the playhead glides instead of stepping.
+      // ponytail: both scroll encodes use a fixed 6-frame GOP, so a seek
+      // decodes at most five dependent frames. Desktop keeps the source's
+      // 60fps cadence at 1080p; mobile uses 30fps at 720p. Target time is
+      // lerped in its own rAF loop rather than set straight from the scroll
+      // handler, so the playhead glides instead of stepping.
       // exponential smoothing, framerate-independent: a fixed per-frame lerp
       // converges twice as fast on a 120Hz display as on 60Hz, so the glide
       // felt different per machine. 1 - e^(-k·dt) is the same curve in wall
